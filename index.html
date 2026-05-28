@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>横スクロール弾避け</title>
+
+<style>
+body {
+  margin: 0;
+  background: #02080e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: sans-serif;
+}
+
+.game-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+canvas {
+  border: 2px solid white;
+  background: #02080e;
+  cursor: default;
+}
+
+#dialogue-ui {
+  border: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game-wrap">
+  <canvas id="debug-ui" width="130" height="28"></canvas>
+  <canvas id="game" width="800" height="450"></canvas>
+  <canvas id="dialogue-ui" width="800" height="120"></canvas>
+</div>
+
+<script src="storyLines.js"></script>
+<script src="story.js"></script>
+<script src="effects.js"></script>
+<script src="stake.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
