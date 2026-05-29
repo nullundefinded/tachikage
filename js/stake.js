@@ -171,7 +171,15 @@ function updateStake() {
     const effectTriangle = stakeEffectTriangle(s);
 
     bullets = bullets.filter(b => {
-      return !hit(s, b) && !hitTriangleWithRect(effectTriangle, b);
+      const cleared =
+        hit(s, b) ||
+        hitTriangleWithRect(effectTriangle, b);
+
+      if (cleared) {
+        addBulletClearCombo();
+      }
+
+      return !cleared;
     });
 
   });

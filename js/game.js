@@ -40,11 +40,15 @@ let parryCount = 0;
 let parryFlash = 0;
 let stakes = [];
 let titleMenuIndex = 0;
+let clearCombo = 0;
+let clearComboTimer = 0;
 
 const MAX_PARRY = 3;
 const SPECIAL_READY_FRAMES = 12;
 const SPECIAL_THROW_FRAMES = 14;
 const STAKE_MUZZLE_FLASH_FRAMES = 5;
+const CLEAR_COMBO_FRAMES = 75;
+const SCORE_DISPLAY_SCALE = 10;
 
 let showHitBoxes = false;
 
@@ -205,6 +209,8 @@ function resetGame() {
   frame = 0;
   parryCount = 0;
   parryFlash = 0;
+  clearCombo = 0;
+  clearComboTimer = 0;
   gameOver = false;
 }
 
@@ -266,6 +272,14 @@ function update() {
   updateBackground();
   // スコア
   score += 1;
+  // 弾消しコンボ時間
+  if (clearComboTimer > 0) {
+    clearComboTimer--;
+
+    if (clearComboTimer <= 0) {
+      resetBulletClearCombo();
+    }
+  }
   // 難易度上昇
   let difficulty = Math.floor(score / 600);
   // 弾生成
@@ -380,6 +394,22 @@ function drawTitle() {
 
   ctx.textAlign = "left";
 
+}
+
+// ====================
+// 弾消しコンボ
+// ====================
+
+function addBulletClearCombo() {
+
+  clearCombo++;
+  clearComboTimer = CLEAR_COMBO_FRAMES;
+  score += clearCombo * SCORE_DISPLAY_SCALE;
+}
+
+function resetBulletClearCombo() {
+  clearCombo = 0;
+  clearComboTimer = 0;
 }
 
 // ====================
@@ -511,7 +541,7 @@ function drawUI() {
   ctx.font = "24px sans-serif";
 
   ctx.fillText(
-    "Score: " + Math.floor(score / 10),
+    "Score: " + Math.floor(score / SCORE_DISPLAY_SCALE),
     20,
     35
   );
@@ -522,6 +552,47 @@ function drawUI() {
     70
   );
 
+  if (clearCombo > 0) {
+
+    ctx.fillStyle = "rgba(120,220,255,0.95)";
+    ctx.font = "20px sans-serif";
+
+    ctx.fillText(
+      `Combo: ${clearCombo}`,
+      20,
+      95
+    );
+
+    const comboGaugeW = 120;
+    const comboGaugeH = 6;
+    const comboGaugeRate = clearComboTimer / CLEAR_COMBO_FRAMES;
+
+    ctx.fillStyle = "rgba(255,255,255,0.16)";
+    ctx.fillRect(
+      20,
+      104,
+      comboGaugeW,
+      comboGaugeH
+    );
+
+    ctx.fillStyle = "rgba(80,220,255,0.9)";
+    ctx.fillRect(
+      20,
+      104,
+      comboGaugeW * comboGaugeRate,
+      comboGaugeH
+    );
+
+    ctx.strokeStyle = "rgba(180,245,255,0.75)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(
+      20,
+      104,
+      comboGaugeW,
+      comboGaugeH
+    );
+  }
+
   // パリィゲージ
   ctx.fillStyle =
     parryCount >= MAX_PARRY
@@ -531,7 +602,7 @@ function drawUI() {
   ctx.fillText(
     `Parry: ${parryCount} / ${MAX_PARRY}`,
     20,
-    105
+    125
   );
 
   // 必殺技使用可能表示
@@ -543,7 +614,7 @@ function drawUI() {
     ctx.fillText(
       "RAIL STAKE READY",
       20,
-      135
+      155
     );
   }
 

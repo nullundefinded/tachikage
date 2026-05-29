@@ -87,6 +87,7 @@ function updateBullets() {
       );
 
       parryFlash = 12;
+      addBulletClearCombo();
 
       continue;
     }
@@ -95,6 +96,7 @@ function updateBullets() {
     if (player.invincible <= 0) {
 
       bullets.splice(i, 1);
+      resetBulletClearCombo();
 
       player.damage++;
       player.invincible = 60;
