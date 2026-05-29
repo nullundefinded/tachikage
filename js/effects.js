@@ -167,12 +167,83 @@ function drawParryFlash() {
 }
 
 // ====================
+// 超電磁杭チャージ発光
+// ====================
+
+function drawSpecialReadyEffect() {
+
+  if (parryCount < MAX_PARRY) return;
+  if (player.special) return;
+  if (gameOver) return;
+
+  const centerX = player.x + player.w / 2;
+  const centerY = player.y + player.h / 2;
+  const pulse = 0.65 + Math.sin(frame * 0.18) * 0.25;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  ctx.shadowBlur = 24;
+  ctx.shadowColor = "rgba(80,210,255,1)";
+  ctx.strokeStyle = `rgba(80,220,255,${0.26 + pulse * 0.18})`;
+  ctx.lineWidth = 5;
+
+  ctx.beginPath();
+  ctx.arc(
+    centerX,
+    centerY,
+    58 + pulse * 8,
+    0,
+    Math.PI * 2
+  );
+  ctx.stroke();
+
+  for (let i = 0; i < 7; i++) {
+
+    const angle = frame * 0.08 + i * Math.PI * 2 / 7;
+    const radius = 42 + Math.sin(frame * 0.12 + i) * 8;
+    const startX = centerX + Math.cos(angle) * radius;
+    const startY = centerY + Math.sin(angle) * radius * 0.9;
+    const midX = startX + (Math.random() - 0.5) * 24;
+    const midY = startY + (Math.random() - 0.5) * 24;
+    const endX = centerX + Math.cos(angle + 0.45) * (radius + 18);
+    const endY = centerY + Math.sin(angle + 0.45) * (radius + 18) * 0.9;
+
+    ctx.shadowBlur = 16;
+    ctx.strokeStyle = "rgba(80,190,255,0.55)";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(midX, midY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    ctx.shadowBlur = 6;
+    ctx.strokeStyle = "rgba(245,255,255,0.9)";
+    ctx.lineWidth = 1.4;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(midX, midY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ====================
 // エフェクト描画
 // ====================
 
 function drawEffects() {
   // 滑走エフェクト
   drawTrailEffect();
+  // 超電磁杭チャージ発光
+  drawSpecialReadyEffect();
   // パリィ発光
   drawParryFlash();
 
