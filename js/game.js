@@ -331,6 +331,53 @@ function drawCoverImage(img) {
 }
 
 // ====================
+// タイトル画面描画
+// ====================
+
+function drawTitle() {
+
+  if (imageReady(titleBgImg)) {
+    drawCoverImage(titleBgImg);
+  } else {
+    drawBackground();
+  }
+
+  ctx.fillStyle = "rgba(0,0,0,0.35)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.textAlign = "center";
+
+  ctx.fillStyle = "white";
+  ctx.font = "64px sans-serif";
+  ctx.fillText(
+    "TACHIKAGE",
+    canvas.width / 2,
+    140
+  );
+
+  ctx.font = "24px sans-serif";
+
+  TITLE_MENU_ITEMS.forEach((item, i) => {
+
+    const y = 245 + i * 42;
+    const selected = i === titleMenuIndex;
+
+    ctx.fillStyle = selected
+      ? "cyan"
+      : "white";
+
+    ctx.fillText(
+      `${selected ? "> " : "  "}${item}${selected ? " <" : "  "}`,
+      canvas.width / 2,
+      y
+    );
+  });
+
+  ctx.textAlign = "left";
+
+}
+
+// ====================
 // 当たり判定デバッグ描画
 // ====================
 
