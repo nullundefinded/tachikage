@@ -594,6 +594,7 @@ function drawUI() {
   }
 
   // パリィゲージ
+  ctx.font = "24px sans-serif";
   ctx.fillStyle =
     parryCount >= MAX_PARRY
       ? "cyan"
@@ -602,21 +603,8 @@ function drawUI() {
   ctx.fillText(
     `Parry: ${parryCount} / ${MAX_PARRY}`,
     20,
-    125
+    135
   );
-
-  // 必殺技使用可能表示
-  if (parryCount >= MAX_PARRY) {
-
-    ctx.fillStyle = "cyan";
-    ctx.font = "20px sans-serif";
-
-    ctx.fillText(
-      "RAIL STAKE READY",
-      20,
-      155
-    );
-  }
 
   // ゲームオーバー
   if (gameOver) {
