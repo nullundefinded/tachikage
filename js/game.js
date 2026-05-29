@@ -148,6 +148,11 @@ document.addEventListener("keydown", e => {
     gameState = "playing";
   }
 
+  if (gameOver && e.key === "Escape") {
+    resetGame();
+    gameState = "title";
+  }
+
 });
 document.addEventListener("keyup", e => {
   keys[e.key] = false;
@@ -565,8 +570,8 @@ function drawUI() {
     ctx.font = "24px sans-serif";
 
     ctx.fillText(
-      "Press Enter",
-      300,
+      "Enter: Retry   Esc: Title",
+      250,
       270
     );
   }
