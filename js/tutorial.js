@@ -27,15 +27,14 @@ let tutorialAdviceText = "";
 let tutorialAdviceTimer = 0;
 let tutorialComboHighlightTimer = 0;
 
-const TUTORIAL_PARRY_STEP = 2;
-const TUTORIAL_CHARGE_STEP = 3;
-const TUTORIAL_STAKE_CLEAR_STEP = 5;
+const TUTORIAL_PARRY_STEP = 4;
+const TUTORIAL_STAKE_CLEAR_STEP = 7;
 const TUTORIAL_COMBO_HIGHLIGHT_FRAMES = 300;
 
 const TUTORIAL_STEPS = [
   {
     face: "normal",
-    text: "まずは移動だね。矢印キーでタチカゲを動かしてみよう。",
+    text: "まずは移動！矢印キーで動いてみて！",
     prompt: "Arrow keys",
     setup: () => {
       tutorialMoved = false;
@@ -46,7 +45,29 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "wink",
-    text: "いいね。次はSpaceでパリィ姿勢。回転して弾をはじく準備をしよう。",
+    text: "いいねぇ！Enterで私の次のナビを続けて聞いてみて！",
+    prompt: "Enter",
+    advanceOnEnter: true,
+    setup: () => {
+      bullets = [];
+      stakes = [];
+    },
+    complete: () => false
+  },
+  {
+    face: "normal",
+    text: "あんたの目的は基本的にどんどん進むこと！右側からくる弾に3回当たったらおしまいだから気を付けてね。",
+    prompt: "Enter",
+    advanceOnEnter: true,
+    setup: () => {
+      bullets = [];
+      stakes = [];
+    },
+    complete: () => false
+  },
+  {
+    face: "wink",
+    text: "次はSpaceでパリィ姿勢！回転して弾をはじく準備をしてみよっ！",
     prompt: "Space",
     setup: () => {
       tutorialPressedParry = false;
@@ -57,7 +78,7 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "normal",
-    text: "今度は実戦。弾を3回パリィして、超電磁杭をチャージしてみよう。",
+    text: "今度は実戦！弾を3回パリィして、超電磁杭をチャージしてみよっ！",
     prompt: () => `Parry ${Math.min(tutorialClearedBullets, MAX_PARRY)} / ${MAX_PARRY}`,
     setup: () => {
       tutorialClearedBullets = 0;
@@ -69,8 +90,9 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "laugh",
-    text: "いいね、3回パリィ成功。タチカゲが電気を纏ったでしょ？これが超電磁杭のチャージ完了サインだよ。",
+    text: "いいねっ！3回パリィ成功！電気を纏ったのわかる？これが超電磁杭のチャージ完了サイン！",
     prompt: "Enter",
+    advanceOnEnter: true,
     setup: () => {
       parryCount = MAX_PARRY;
       bullets = [];
@@ -80,7 +102,7 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "surprised",
-    text: "それじゃ、Xで超電磁杭を撃ってみよう！超電磁杭でも弾を消せるよ。",
+    text: "それじゃ、Xで超電磁杭を撃ってみよう！超電磁杭でも弾を消せちゃうよ！",
     prompt: "X",
     setup: () => {
       tutorialPressedStake = false;
@@ -118,7 +140,7 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "laugh",
-    text: "弾を連続で消すとComboが増えて、スコアボーナスも大きくなるよ。ゲージがなくなる前につなげよう！",
+    text: "弾を連続で消すとComboが増えて、スコアボーナスも大きくなるの！ゲージがなくなる前につなげよう！",
     prompt: "Enter/Escでタイトルに戻る",
     setup: () => {
       bullets = [];
@@ -169,6 +191,8 @@ function advanceTutorialStep() {
 
 function handleTutorialKey(e) {
 
+  const step = TUTORIAL_STEPS[tutorialStepIndex];
+
   if (e.key === "Escape") {
     resetGame();
     gameState = "title";
@@ -186,7 +210,8 @@ function handleTutorialKey(e) {
 
   if (
     e.key === "Enter" &&
-    tutorialStepIndex === TUTORIAL_CHARGE_STEP
+    step &&
+    step.advanceOnEnter
   ) {
     advanceTutorialStep();
     return true;
@@ -231,7 +256,7 @@ function updateTutorial() {
 
   if (player.damage > damageBefore) {
     showTutorialAdvice(
-      "あー、タイミングむずいよねぇ　『弾に対してちょっと早めに置く』のがコツだよ"
+      "あー、タイミングむずいよねぇ…『弾に対してちょっと早めに置く』のがコツだよ！"
     );
   }
 
