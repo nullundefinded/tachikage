@@ -94,6 +94,7 @@ document.addEventListener("keydown", e => {
 
       if (selectedMenu === "START") {
         resetGame();
+        resetGameNav();
         gameState = "playing";
       }
 
@@ -160,6 +161,7 @@ document.addEventListener("keydown", e => {
 
   if (gameOver && e.key === "Enter") {
     resetGame();
+    resetGameNav();
     gameState = "playing";
   }
 
@@ -305,6 +307,8 @@ function update() {
   updateBullets();
   // エフェクト
   updateEffects();
+  // ゲーム中ナビ
+  updateGameNav();
 }
 
 // ====================
@@ -723,7 +727,9 @@ function loop() {
   update();
   draw();
   drawDebugUI();
-  if (
+  if (gameState === "playing") {
+    drawGameNav();
+  } else if (
     gameState !== "story" &&
     gameState !== "tutorial"
   ) {
