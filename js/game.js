@@ -374,6 +374,14 @@ function drawTitle() {
     140
   );
 
+  ctx.fillStyle = "rgba(210,245,255,0.86)";
+  ctx.font = "17px sans-serif";
+  ctx.fillText(
+    "- WHERE PAIN ENDS -",
+    canvas.width / 2,
+    174
+  );
+
   ctx.font = "24px sans-serif";
 
   TITLE_MENU_ITEMS.forEach((item, i) => {
