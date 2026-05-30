@@ -62,7 +62,7 @@ const HITBOX_TOGGLE = {
 const TITLE_MENU_ITEMS = [
   "START",
   "STORY",
-  "HOW TO PLAY",
+  "TUTORIAL",
   "CONFIG",
   "CREDITS"
 ];
@@ -101,6 +101,11 @@ document.addEventListener("keydown", e => {
         resetStory();
         gameState = "story";
       }
+
+      if (selectedMenu === "TUTORIAL") {
+        resetTutorial();
+        gameState = "tutorial";
+      }
     }
 
     return;
@@ -122,6 +127,12 @@ document.addEventListener("keydown", e => {
     }
 
     return;
+  }
+
+  if (gameState === "tutorial") {
+    if (handleTutorialKey(e)) {
+      return;
+    }
   }
 
   if (
@@ -260,6 +271,10 @@ function update() {
   if (gameState === "title") return;
   if (gameState === "story") {
     updateStory();
+    return;
+  }
+  if (gameState === "tutorial") {
+    updateTutorial();
     return;
   }
   if (gameOver) return;
@@ -413,6 +428,10 @@ function addBulletClearCombo() {
   clearCombo++;
   clearComboTimer = CLEAR_COMBO_FRAMES;
   score += clearCombo * SCORE_DISPLAY_SCALE;
+
+  if (typeof markTutorialBulletCleared === "function") {
+    markTutorialBulletCleared();
+  }
 }
 
 function resetBulletClearCombo() {
@@ -686,6 +705,9 @@ function draw() {
     case "story":
       drawStory();
       break;
+    case "tutorial":
+      drawTutorial();
+      break;
     case "playing":
       drawGame();
       break;
@@ -701,7 +723,10 @@ function loop() {
   update();
   draw();
   drawDebugUI();
-  if (gameState !== "story") {
+  if (
+    gameState !== "story" &&
+    gameState !== "tutorial"
+  ) {
     drawDialogueUI("", "");
   }
 
