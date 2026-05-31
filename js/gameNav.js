@@ -19,6 +19,7 @@ gameNavFaces.wink.src = "images/sherry_face_wink.png";
 let gameNavMessage = null;
 let gameNavTimer = 0;
 let gameNavPriority = 0;
+let gameNavParryUseCount = 0;
 
 const GAME_NAV_DEFAULT_FRAMES = 180;
 const gameNavFlags = {};
@@ -28,6 +29,7 @@ function resetGameNav() {
   gameNavMessage = null;
   gameNavTimer = 0;
   gameNavPriority = 0;
+  gameNavParryUseCount = 0;
 
   Object.keys(gameNavFlags).forEach(key => {
     delete gameNavFlags[key];
@@ -46,6 +48,8 @@ function updateGameNav() {
 
   if (gameState !== "playing") return;
 
+  const displayScore = Math.floor(score / SCORE_DISPLAY_SCALE);
+
   if (gameNavTimer > 0) {
     gameNavTimer--;
 
@@ -53,6 +57,32 @@ function updateGameNav() {
       gameNavMessage = null;
       gameNavPriority = 0;
     }
+  }
+
+  if (
+    displayScore >= 50 &&
+    gameNavParryUseCount <= 0
+  ) {
+    showGameNavOnce(
+      "parryTip",
+      "normal",
+      "…あ、ちなみにSpace押すとパリィだよー　無敵になりながら早く動けてお得！",
+      240,
+      5
+    );
+  }
+
+  if (
+    displayScore >= 100 &&
+    gameNavParryUseCount <= 0
+  ) {
+    showGameNavOnce(
+      "parryChallenge",
+      "wink",
+      "なになにパリィ縛りー？　そういうプレイがお好きかにゃ？",
+      210,
+      4
+    );
   }
 
   if (player.damage >= 2) {
@@ -76,13 +106,39 @@ function updateGameNav() {
     );
   }
 
+  if (clearCombo >= 50) {
+    showGameNavOnce(
+      "combo50",
+      "surprised",
+      "50コンボぉ！？そこまでいけるんだ！？",
+      210,
+      5
+    );
+  } else if (clearCombo >= 30) {
+    showGameNavOnce(
+      "combo30",
+      "surprised",
+      "30コンボ！それはちょっとやりすぎじゃない！？",
+      210,
+      4
+    );
+  } else if (clearCombo >= 10) {
+    showGameNavOnce(
+      "combo10",
+      "laugh",
+      "おー！10コンボ達成！やりますなぁ",
+      180,
+      3
+    );
+  }
+
   if (parryCount >= MAX_PARRY) {
     showGameNavOnce(
       "stakeReady",
       "wink",
       "電気きた！Xで超電磁杭いけるよ！",
       180,
-      2
+      4
     );
   }
 }
@@ -91,8 +147,16 @@ function showGameNavOnce(id, face, text, frames, priority) {
 
   if (gameNavFlags[id]) return;
 
-  gameNavFlags[id] = true;
-  showGameNav(face, text, frames, priority);
+  if (showGameNav(face, text, frames, priority)) {
+    gameNavFlags[id] = true;
+  }
+}
+
+function markGameNavParryUsed() {
+
+  if (gameState !== "playing") return;
+
+  gameNavParryUseCount++;
 }
 
 function showGameNav(face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1) {
@@ -102,7 +166,7 @@ function showGameNav(face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1)
     gameNavTimer > 0 &&
     priority < gameNavPriority
   ) {
-    return;
+    return false;
   }
 
   gameNavMessage = {
@@ -111,6 +175,8 @@ function showGameNav(face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1)
   };
   gameNavTimer = frames;
   gameNavPriority = priority;
+
+  return true;
 }
 
 function drawGameNav() {

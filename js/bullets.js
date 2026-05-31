@@ -89,6 +89,10 @@ function updateBullets() {
       parryFlash = 12;
       addBulletClearCombo();
 
+      if (typeof markGameNavParryUsed === "function") {
+        markGameNavParryUsed();
+      }
+
       continue;
     }
 
