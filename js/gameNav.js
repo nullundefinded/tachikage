@@ -93,7 +93,6 @@ function updateGameNav() {
       210,
       4
     );
-    return;
   }
 
   if (player.damage >= 1) {
