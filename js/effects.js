@@ -249,7 +249,52 @@ function drawEffects() {
 
 }
 
+const STAKE_HELIX_FRAME_COUNT = 6;
+const STAKE_HELIX_W = 220;
+const STAKE_HELIX_H = 140;
+const STAKE_HELIX_TIP_X = 175;
+const STAKE_HELIX_CENTER_Y = 70;
+
+const stakeHelixImgs = {
+  back: [],
+  front: []
+};
+
+for (let i = 0; i < STAKE_HELIX_FRAME_COUNT; i++) {
+  const backImg = new Image();
+  backImg.src = `images/effects/stake_helix_back_${i}.png`;
+  stakeHelixImgs.back.push(backImg);
+
+  const frontImg = new Image();
+  frontImg.src = `images/effects/stake_helix_front_${i}.png`;
+  stakeHelixImgs.front.push(frontImg);
+}
+
 function drawStakeHelix(s, front) {
+
+  const frames = front ? stakeHelixImgs.front : stakeHelixImgs.back;
+  const img = frames[Math.floor(s.age / 2) % frames.length];
+  const tipX = s.x + s.w;
+  const centerY = s.y + s.h / 2;
+
+  if (imageReady(img)) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.drawImage(
+      img,
+      tipX - STAKE_HELIX_TIP_X,
+      centerY - STAKE_HELIX_CENTER_Y,
+      STAKE_HELIX_W,
+      STAKE_HELIX_H
+    );
+    ctx.restore();
+    return;
+  }
+
+  drawStakeHelixProcedural(s, front);
+}
+
+function drawStakeHelixProcedural(s, front) {
 
   const tipX = s.x + s.w;
   const centerY = s.y + s.h / 2;
