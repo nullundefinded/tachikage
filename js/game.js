@@ -724,17 +724,34 @@ function draw() {
 
 function loop() {
 
-  update();
-  draw();
-  drawDebugUI();
-  if (gameState === "playing") {
-    drawGameNav();
-  } else if (
-    gameState !== "story" &&
-    gameState !== "tutorial"
-  ) {
-    drawDialogueUI("", "");
-  }
+  perfBeginFrame();
+
+  perfMeasureUpdate(() => {
+    update();
+  });
+
+  perfMeasureDraw(() => {
+    draw();
+    drawDebugUI();
+    if (gameState === "playing") {
+      drawGameNav();
+    } else if (
+      gameState !== "story" &&
+      gameState !== "tutorial"
+    ) {
+      drawDialogueUI("", "");
+    }
+
+    perfSetCounts({
+      bullets: bullets.length,
+      enemyBullets: bullets.length,
+      playerBullets: stakes.length,
+      enemies: 0,
+      effects: trailPoints.length + stakes.length
+    });
+
+    perfDrawOverlay();
+  });
 
   requestAnimationFrame(loop);
 
