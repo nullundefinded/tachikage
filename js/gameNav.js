@@ -20,6 +20,7 @@ let gameNavMessage = null;
 let gameNavTimer = 0;
 let gameNavPriority = 0;
 let gameNavParryUseCount = 0;
+let gameNavGameOverShown = false;
 
 const GAME_NAV_DEFAULT_FRAMES = 180;
 const gameNavFlags = {};
@@ -31,6 +32,7 @@ function resetGameNav() {
   gameNavTimer = 0;
   gameNavPriority = 0;
   gameNavParryUseCount = 0;
+  gameNavGameOverShown = false;
 
   Object.keys(gameNavFlags).forEach(key => {
     delete gameNavFlags[key];
@@ -52,6 +54,13 @@ function resetGameNav() {
 function updateGameNav() {
 
   if (gameState !== "playing") return;
+
+  if (gameOver) {
+    showGameNavGameOver();
+    return;
+  }
+
+  gameNavGameOverShown = false;
 
   const displayScore = Math.floor(score / SCORE_DISPLAY_SCALE);
 
@@ -171,6 +180,25 @@ function updateGameNav() {
   }
 }
 
+function showGameNavGameOver() {
+
+  if (gameNavGameOverShown) return;
+
+  showGameNav(
+    "gameOver",
+    "sad",
+    pickGameNavLine([
+      "ここまでだね…でも、次はいけるよ！",
+      "大丈夫、もう一回いこ！",
+      "惜しかったね。次はもっと先まで行ける！"
+    ]),
+    240,
+    10
+  );
+
+  gameNavGameOverShown = true;
+}
+
 function showGameNav(id, face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1, options = {}) {
 
   const once = options.once ?? true;
@@ -190,6 +218,13 @@ function showGameNav(id, face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority 
   }
 
   return true;
+}
+
+function pickGameNavLine(lines) {
+
+  return lines[
+    Math.floor(Math.random() * lines.length)
+  ];
 }
 
 function markGameNavParryUsed() {

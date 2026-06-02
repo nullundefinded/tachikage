@@ -279,7 +279,10 @@ function update() {
     updateTutorial();
     return;
   }
-  if (gameOver) return;
+  if (gameOver) {
+    updateGameNav();
+    return;
+  }
   frame++;
   // プレイヤー動作
   updatePlayer();
