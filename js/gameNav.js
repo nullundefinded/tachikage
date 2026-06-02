@@ -21,8 +21,13 @@ let gameNavTimer = 0;
 let gameNavPriority = 0;
 let gameNavParryUseCount = 0;
 let gameNavGameOverShown = false;
+let gameNavIdleTalkTimer = 0;
+let gameNavStakeReadyShown = false;
 
 const GAME_NAV_DEFAULT_FRAMES = 180;
+const GAME_NAV_IDLE_TALK_START_SCORE = 120;
+const GAME_NAV_IDLE_TALK_MIN_FRAMES = 360;
+const GAME_NAV_IDLE_TALK_RANDOM_FRAMES = 240;
 const gameNavFlags = {};
 const gameNavCooldowns = {};
 
@@ -33,6 +38,8 @@ function resetGameNav() {
   gameNavPriority = 0;
   gameNavParryUseCount = 0;
   gameNavGameOverShown = false;
+  gameNavIdleTalkTimer = nextGameNavIdleTalkFrames();
+  gameNavStakeReadyShown = false;
 
   Object.keys(gameNavFlags).forEach(key => {
     delete gameNavFlags[key];
@@ -107,13 +114,43 @@ function updateGameNav() {
     );
   }
 
+  if (displayScore >= 600) {
+    showGameNav(
+      "score600",
+      "surprised",
+      pickGameNavLine([
+        "スコア600突破！？すごい、かなり遠くまで来てるよ！",
+        "ここまで来たらもう上級者じゃん！集中切らさないで！",
+        "スコア600超え！いい波乗ってんねぇ！"
+      ]),
+      210,
+      5
+    );
+  } else if (displayScore >= 300) {
+    showGameNav(
+      "score300",
+      "laugh",
+      pickGameNavLine([
+        "スコア300突破！いいペースだよ！",
+        "ここまで来たね！その調子で伸ばしてこ！",
+        "スコア300超え！だいぶ滑れてきたじゃん！"
+      ]),
+      200,
+      4
+    );
+  }
+
   if (player.damage >= 2) {
     showGameNav(
       "danger",
       "surprised",
-      "あと1回当たったら危ないよ！無理せず避けて！",
+      pickGameNavLine([
+        "あと1回当たったら危ないよ！無理せず避けて！",
+        "ちょっと危ないかも。無理しすぎ注意ね",
+        "深呼吸、深呼吸。まだ立て直せるよ"
+      ]),
       210,
-      4
+      6
     );
   }
 
@@ -121,9 +158,13 @@ function updateGameNav() {
     showGameNav(
       "firstDamage",
       "sad",
-      "あー、当たっちゃった。無理せず避けてこ！",
+      pickGameNavLine([
+        "あー、当たっちゃった。無理せず避けてこ！",
+        "大丈夫、まだいける！次は避けよ！",
+        "一発もらったね。落ち着いて立て直そ！"
+      ]),
       180,
-      3
+      5
     );
   }
 
@@ -131,7 +172,11 @@ function updateGameNav() {
     showGameNav(
       "combo50",
       "surprised",
-      "50コンボぉ！？そこまでいけるんだ！？",
+      pickGameNavLine([
+        "50コンボぉ！？そこまでいけるんだ！？",
+        "50コンボ！？ちょっと本気出しすぎじゃない！？",
+        "すごっ、50コンボ！そのまま突っ走れー！"
+      ]),
       210,
       5,
       {
@@ -143,7 +188,11 @@ function updateGameNav() {
     showGameNav(
       "combo30",
       "surprised",
-      "30コンボ！それはちょっとやりすぎじゃない！？",
+      pickGameNavLine([
+        "30コンボ！それはちょっとやりすぎじゃない！？",
+        "30コンボ到達！いい感じに乗ってるね！",
+        "そこまでつなぐ！？やるじゃん！"
+      ]),
       210,
       4,
       {
@@ -155,7 +204,11 @@ function updateGameNav() {
     showGameNav(
       "combo10",
       "laugh",
-      "おー！10コンボ達成！やりますなぁ",
+      pickGameNavLine([
+        "おー！10コンボ達成！やりますなぁ",
+        "10コンボ！いい流れきてるよ！",
+        "よしよし、つながってる！その調子！"
+      ]),
       180,
       3,
       {
@@ -165,38 +218,123 @@ function updateGameNav() {
     );
   }
 
-  if (parryCount >= MAX_PARRY) {
-    showGameNav(
+  if (parryCount < MAX_PARRY) {
+    gameNavStakeReadyShown = false;
+  }
+
+  if (
+    parryCount >= MAX_PARRY &&
+    !gameNavStakeReadyShown
+  ) {
+    if (showGameNav(
       "stakeReady",
       "wink",
-      "チャージ完了！Xで超電磁杭だよ！",
+      pickGameNavLine([
+        "チャージ完了！Xで超電磁杭だよ！",
+        "バリバリ来てるねぇ！Xでぶっ放そ！",
+        "今なら撃てるよ！超電磁杭、いっちゃえ！"
+      ]),
       180,
       4,
       {
         once: false,
-        cooldown: 300
+        cooldown: 0
       }
-    );
+    )) {
+      gameNavStakeReadyShown = true;
+    }
   }
+
+  updateGameNavIdleTalk(displayScore);
 }
 
 function showGameNavGameOver() {
 
   if (gameNavGameOverShown) return;
 
+  const displayScore = Math.floor(score / SCORE_DISPLAY_SCALE);
+  let face = "sad";
+  let lines = [
+    "ここまでだね…でも、次はいけるよ！",
+    "大丈夫、もう一回いこ！",
+    "うわっ……今のは痛かったね、大丈夫？"
+  ];
+
+  if (displayScore >= 600) {
+    face = "surprised";
+    lines = [
+      "600超えてそこまで！？すごい記録だよ！",
+      "ここまで行けたなら胸張っていいって！次はもっと先だね！",
+      "かなり走り切ったね…今の、ほんとに見応えあったよ！"
+    ];
+  } else if (displayScore >= 300) {
+    face = "wink";
+    lines = [
+      "300超えでそこまで行けたね！次はもっと伸ばそ！",
+      "いい走りだったよ！今の感覚、忘れないでね！",
+      "惜しかったけど、かなり進めてたよ！もう一回いこ！"
+    ];
+  }
+
   showGameNav(
     "gameOver",
-    "sad",
-    pickGameNavLine([
-      "ここまでだね…でも、次はいけるよ！",
-      "大丈夫、もう一回いこ！",
-      "惜しかったね。次はもっと先まで行ける！"
-    ]),
+    face,
+    pickGameNavLine(lines),
     240,
     10
   );
 
   gameNavGameOverShown = true;
+}
+
+function updateGameNavIdleTalk(displayScore) {
+
+  if (displayScore < GAME_NAV_IDLE_TALK_START_SCORE) return;
+
+  gameNavIdleTalkTimer--;
+
+  if (gameNavIdleTalkTimer > 0) return;
+
+  const line = pickGameNavLine([
+    {
+      face: "normal",
+      text: "いい感じ、いい感じ。そのまま滑ってこ！"
+    },
+    {
+      face: "wink",
+      text: "無理に突っ込まなくていいよー。安全第一！"
+    },
+    {
+      face: "laugh",
+      text: "その調子その調子。わたしの解説がいいからかな？"
+    },
+    {
+      face: "sad",
+      text: "最近ねー、ネイル変えてみてさ…　ってタチカゲ聞いてる？"
+    },
+    {
+      face: "surprised",
+      text: "…あ、そういや今日のボイトレ忘れたわ"
+    },
+    {
+      face: "laugh",
+      text: "いやー、見てる分にはおもろいんだけど…タチカゲ君は大変そうですなぁ"
+    }
+  ]);
+
+  if (showGameNav(
+    "idleTalk",
+    line.face,
+    line.text,
+    180,
+    1,
+    {
+      once: false,
+      cooldown: GAME_NAV_IDLE_TALK_MIN_FRAMES
+    }
+  )) {
+    gameNavIdleTalkTimer = nextGameNavIdleTalkFrames();
+  }
 }
 
 function showGameNav(id, face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1, options = {}) {
@@ -227,6 +365,12 @@ function pickGameNavLine(lines) {
   ];
 }
 
+function nextGameNavIdleTalkFrames() {
+
+  return GAME_NAV_IDLE_TALK_MIN_FRAMES +
+    Math.floor(Math.random() * GAME_NAV_IDLE_TALK_RANDOM_FRAMES);
+}
+
 function markGameNavParryUsed() {
 
   if (gameState !== "playing") return;
@@ -239,7 +383,7 @@ function setGameNavMessage(face, text, frames, priority) {
   if (
     gameNavMessage &&
     gameNavTimer > 0 &&
-    priority < gameNavPriority
+    priority <= gameNavPriority
   ) {
     return false;
   }
