@@ -170,11 +170,52 @@ function drawParryFlash() {
 // 超電磁杭チャージ発光
 // ====================
 
+const SPECIAL_READY_FRAME_COUNT = 8;
+const SPECIAL_READY_W = 200;
+const SPECIAL_READY_H = 200;
+const SPECIAL_READY_CENTER_X = 100;
+const SPECIAL_READY_CENTER_Y = 100;
+
+const specialReadyImgs = [];
+
+for (let i = 0; i < SPECIAL_READY_FRAME_COUNT; i++) {
+  const img = new Image();
+  img.src = `images/effects/special_ready_${i}.png`;
+  specialReadyImgs.push(img);
+}
+
 function drawSpecialReadyEffect() {
 
   if (parryCount < MAX_PARRY) return;
   if (player.special) return;
   if (gameOver) return;
+
+  const img =
+    specialReadyImgs[
+      Math.floor(frame / 2) % SPECIAL_READY_FRAME_COUNT
+    ];
+
+  if (!imageReady(img)) {
+    drawSpecialReadyEffectProcedural();
+    return;
+  }
+
+  const centerX = player.x + player.w / 2;
+  const centerY = player.y + player.h / 2;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.drawImage(
+    img,
+    centerX - SPECIAL_READY_CENTER_X,
+    centerY - SPECIAL_READY_CENTER_Y,
+    SPECIAL_READY_W,
+    SPECIAL_READY_H
+  );
+  ctx.restore();
+}
+
+function drawSpecialReadyEffectProcedural() {
 
   const centerX = player.x + player.w / 2;
   const centerY = player.y + player.h / 2;
