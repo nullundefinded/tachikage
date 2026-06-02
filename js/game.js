@@ -52,13 +52,6 @@ const SCORE_DISPLAY_SCALE = 10;
 
 let showHitBoxes = false;
 
-const HITBOX_TOGGLE = {
-  x: 0,
-  y: 0,
-  w: 130,
-  h: 28
-};
-
 const TITLE_MENU_ITEMS = [
   "START",
   "STORY",
@@ -68,129 +61,36 @@ const TITLE_MENU_ITEMS = [
 ];
 
 // ====================
-// 入力
+// 状態遷移
 // ====================
 
-document.addEventListener("keydown", e => {
+function enterTitle() {
+  gameState = "title";
+}
 
-  keys[e.key] = true;
+function enterPlaying() {
+  resetGame();
+  resetGameNav();
+  gameState = "playing";
+}
 
-  if (gameState === "title") {
+function enterStory() {
+  resetStory();
+  gameState = "story";
+}
 
-    if (e.code === "ArrowUp") {
-      titleMenuIndex =
-        (titleMenuIndex + TITLE_MENU_ITEMS.length - 1) %
-        TITLE_MENU_ITEMS.length;
-    }
+function enterTutorial() {
+  resetTutorial();
+  gameState = "tutorial";
+}
 
-    if (e.code === "ArrowDown") {
-      titleMenuIndex =
-        (titleMenuIndex + 1) %
-        TITLE_MENU_ITEMS.length;
-    }
+function enterConfig() {
+  gameState = "config";
+}
 
-    if (e.key === "Enter") {
-      const selectedMenu = TITLE_MENU_ITEMS[titleMenuIndex];
-
-      if (selectedMenu === "START") {
-        resetGame();
-        resetGameNav();
-        gameState = "playing";
-      }
-
-      if (selectedMenu === "STORY") {
-        resetStory();
-        gameState = "story";
-      }
-
-      if (selectedMenu === "TUTORIAL") {
-        resetTutorial();
-        gameState = "tutorial";
-      }
-    }
-
-    return;
-  }
-
-  if (gameState === "story") {
-
-    if (e.key === "Escape") {
-      gameState = "title";
-    }
-
-    if (e.key === "Enter") {
-
-      if (storyLineIndex < STORY_LINES.length - 1) {
-        advanceStoryLine();
-      } else {
-        gameState = "title";
-      }
-    }
-
-    return;
-  }
-
-  if (gameState === "tutorial") {
-    if (handleTutorialKey(e)) {
-      return;
-    }
-  }
-
-  if (
-    e.code === "Space" &&
-    !e.repeat &&
-    !player.spin &&
-    !gameOver
-  ) {
-  
-    player.spin = true;
-    player.spinTimer = 0;
-  
-    player.speed = player.boostSpeed;
-  
-  }
-
-  if (
-    e.code === "KeyX" &&
-    !gameOver &&
-    parryCount >= MAX_PARRY
-  ) {
-  
-    startSpecial();
-  }
-
-  if (gameOver && e.key === "Enter") {
-    resetGame();
-    resetGameNav();
-    gameState = "playing";
-  }
-
-  if (gameOver && e.key === "Escape") {
-    resetGame();
-    gameState = "title";
-  }
-
-});
-document.addEventListener("keyup", e => {
-  keys[e.key] = false;
-});
-
-debugCanvas.addEventListener("click", e => {
-
-  const rect = debugCanvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * debugCanvas.width / rect.width;
-  const y = (e.clientY - rect.top) * debugCanvas.height / rect.height;
-
-  if (
-    x >= HITBOX_TOGGLE.x &&
-    x <= HITBOX_TOGGLE.x + HITBOX_TOGGLE.w &&
-    y >= HITBOX_TOGGLE.y &&
-    y <= HITBOX_TOGGLE.y + HITBOX_TOGGLE.h
-  ) {
-    showHitBoxes = !showHitBoxes;
-    drawDebugUI();
-  }
-});
+function enterCredits() {
+  gameState = "credits";
+}
 
 // ====================
 // リセット
@@ -271,6 +171,8 @@ function updateBackground() {
 
 function update() {
   if (gameState === "title") return;
+  if (gameState === "config") return;
+  if (gameState === "credits") return;
   if (gameState === "story") {
     updateStory();
     return;
@@ -372,61 +274,6 @@ function drawCoverImage(img) {
 }
 
 // ====================
-// タイトル画面描画
-// ====================
-
-function drawTitle() {
-
-  if (imageReady(titleBgImg)) {
-    drawCoverImage(titleBgImg);
-  } else {
-    drawBackground();
-  }
-
-  ctx.fillStyle = "rgba(0,0,0,0.35)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.textAlign = "center";
-
-  ctx.fillStyle = "white";
-  ctx.font = "64px sans-serif";
-  ctx.fillText(
-    "TACHIKAGE",
-    canvas.width / 2,
-    140
-  );
-
-  ctx.fillStyle = "rgba(210,245,255,0.86)";
-  ctx.font = "17px sans-serif";
-  ctx.fillText(
-    "- WHERE PAIN ENDS -",
-    canvas.width / 2,
-    174
-  );
-
-  ctx.font = "24px sans-serif";
-
-  TITLE_MENU_ITEMS.forEach((item, i) => {
-
-    const y = 245 + i * 42;
-    const selected = i === titleMenuIndex;
-
-    ctx.fillStyle = selected
-      ? "cyan"
-      : "white";
-
-    ctx.fillText(
-      `${selected ? "> " : "  "}${item}${selected ? " <" : "  "}`,
-      canvas.width / 2,
-      y
-    );
-  });
-
-  ctx.textAlign = "left";
-
-}
-
-// ====================
 // 弾消しコンボ
 // ====================
 
@@ -444,230 +291,6 @@ function addBulletClearCombo() {
 function resetBulletClearCombo() {
   clearCombo = 0;
   clearComboTimer = 0;
-}
-
-// ====================
-// 当たり判定デバッグ描画
-// ====================
-
-function drawHitBox(box, color) {
-
-  ctx.fillStyle = color.fill;
-  ctx.strokeStyle = color.stroke;
-  ctx.lineWidth = 2;
-
-  ctx.fillRect(box.x, box.y, box.w, box.h);
-  ctx.strokeRect(box.x, box.y, box.w, box.h);
-}
-
-function drawHitTriangle(triangle, color) {
-
-  ctx.fillStyle = color.fill;
-  ctx.strokeStyle = color.stroke;
-  ctx.lineWidth = 2;
-
-  ctx.beginPath();
-  ctx.moveTo(triangle.a.x, triangle.a.y);
-  ctx.lineTo(triangle.b.x, triangle.b.y);
-  ctx.lineTo(triangle.c.x, triangle.c.y);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawHitBoxes() {
-
-  if (!showHitBoxes) return;
-
-  ctx.save();
-
-  drawHitBox(
-    player,
-    {
-      fill: "rgba(80,255,120,0.12)",
-      stroke: "rgba(80,255,120,0.85)"
-    }
-  );
-
-  bullets.forEach(b => {
-    drawHitBox(
-      b,
-      {
-        fill: "rgba(255,80,80,0.12)",
-        stroke: "rgba(255,80,80,0.85)"
-      }
-    );
-  });
-
-  stakes.forEach(s => {
-    drawHitTriangle(
-      stakeEffectTriangle(s),
-      {
-        fill: "rgba(190,90,255,0.10)",
-        stroke: "rgba(190,90,255,0.75)"
-      }
-    );
-
-    drawHitBox(
-      s,
-      {
-        fill: "rgba(80,230,255,0.14)",
-        stroke: "rgba(80,230,255,0.9)"
-      }
-    );
-  });
-
-  ctx.restore();
-}
-
-// ====================
-// 外部UI描画
-// ====================
-
-function drawDebugUI() {
-
-  debugCtx.clearRect(0, 0, debugCanvas.width, debugCanvas.height);
-  debugCtx.save();
-
-  debugCtx.fillStyle = showHitBoxes
-    ? "rgba(60,220,255,0.22)"
-    : "rgba(0,0,0,0.35)";
-  debugCtx.strokeStyle = showHitBoxes
-    ? "rgba(90,240,255,0.95)"
-    : "rgba(255,255,255,0.55)";
-  debugCtx.lineWidth = 2;
-
-  debugCtx.fillRect(
-    HITBOX_TOGGLE.x,
-    HITBOX_TOGGLE.y,
-    HITBOX_TOGGLE.w,
-    HITBOX_TOGGLE.h
-  );
-  debugCtx.strokeRect(
-    HITBOX_TOGGLE.x,
-    HITBOX_TOGGLE.y,
-    HITBOX_TOGGLE.w,
-    HITBOX_TOGGLE.h
-  );
-
-  debugCtx.fillStyle = showHitBoxes
-    ? "cyan"
-    : "white";
-  debugCtx.font = "14px sans-serif";
-  debugCtx.textAlign = "center";
-  debugCtx.textBaseline = "middle";
-  debugCtx.fillText(
-    `HIT BOX ${showHitBoxes ? "ON" : "OFF"}`,
-    HITBOX_TOGGLE.x + HITBOX_TOGGLE.w / 2,
-    HITBOX_TOGGLE.y + HITBOX_TOGGLE.h / 2
-  );
-
-  debugCtx.restore();
-}
-
-// ====================
-// ゲーム画面UI描画
-// ====================
-
-function drawUI() {
-
-  ctx.fillStyle = "white";
-  ctx.font = "24px sans-serif";
-
-  ctx.fillText(
-    "Score: " + Math.floor(score / SCORE_DISPLAY_SCALE),
-    20,
-    35
-  );
-
-  ctx.fillText(
-    "Damage: " + player.damage + " / 3",
-    20,
-    70
-  );
-
-  if (clearCombo > 0) {
-
-    ctx.fillStyle = "rgba(120,220,255,0.95)";
-    ctx.font = "20px sans-serif";
-
-    ctx.fillText(
-      `Combo: ${clearCombo}`,
-      20,
-      95
-    );
-
-    const comboGaugeW = 120;
-    const comboGaugeH = 6;
-    const comboGaugeRate = clearComboTimer / CLEAR_COMBO_FRAMES;
-
-    ctx.fillStyle = "rgba(255,255,255,0.16)";
-    ctx.fillRect(
-      20,
-      104,
-      comboGaugeW,
-      comboGaugeH
-    );
-
-    ctx.fillStyle = "rgba(80,220,255,0.9)";
-    ctx.fillRect(
-      20,
-      104,
-      comboGaugeW * comboGaugeRate,
-      comboGaugeH
-    );
-
-    ctx.strokeStyle = "rgba(180,245,255,0.75)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(
-      20,
-      104,
-      comboGaugeW,
-      comboGaugeH
-    );
-  }
-
-  // パリィゲージ
-  ctx.font = "24px sans-serif";
-  ctx.fillStyle =
-    parryCount >= MAX_PARRY
-      ? "cyan"
-      : "white";
-
-  ctx.fillText(
-    `Parry: ${parryCount} / ${MAX_PARRY}`,
-    20,
-    135
-  );
-
-  // ゲームオーバー
-  if (gameOver) {
-
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.fillRect(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-
-    ctx.fillStyle = "white";
-    ctx.font = "48px sans-serif";
-
-    ctx.fillText(
-      "GAME OVER",
-      240,
-      220
-    );
-
-    ctx.font = "24px sans-serif";
-
-    ctx.fillText(
-      "Enter: Retry   Esc: Title",
-      250,
-      270
-    );
-  }
 }
 
 // ====================
@@ -714,6 +337,12 @@ function draw() {
       break;
     case "tutorial":
       drawTutorial();
+      break;
+    case "config":
+      drawConfig();
+      break;
+    case "credits":
+      drawCredits();
       break;
     case "playing":
       drawGame();
