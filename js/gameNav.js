@@ -23,6 +23,7 @@ let gameNavParryUseCount = 0;
 
 const GAME_NAV_DEFAULT_FRAMES = 180;
 const gameNavFlags = {};
+const gameNavCooldowns = {};
 
 function resetGameNav() {
 
@@ -35,7 +36,11 @@ function resetGameNav() {
     delete gameNavFlags[key];
   });
 
-  showGameNavOnce(
+  Object.keys(gameNavCooldowns).forEach(key => {
+    delete gameNavCooldowns[key];
+  });
+
+  showGameNav(
     "start",
     "normal",
     "よし、行こっか！",
@@ -59,11 +64,19 @@ function updateGameNav() {
     }
   }
 
+  Object.keys(gameNavCooldowns).forEach(id => {
+    gameNavCooldowns[id]--;
+
+    if (gameNavCooldowns[id] <= 0) {
+      delete gameNavCooldowns[id];
+    }
+  });
+
   if (
     displayScore >= 50 &&
     gameNavParryUseCount <= 0
   ) {
-    showGameNavOnce(
+    showGameNav(
       "parryTip",
       "normal",
       "…あ、ちなみにSpace押すとパリィだよー　無敵になりながら早く動けてお得！",
@@ -76,7 +89,7 @@ function updateGameNav() {
     displayScore >= 100 &&
     gameNavParryUseCount <= 0
   ) {
-    showGameNavOnce(
+    showGameNav(
       "parryChallenge",
       "wink",
       "なになにパリィ縛りー？　そういうプレイがお好きかにゃ？",
@@ -86,7 +99,7 @@ function updateGameNav() {
   }
 
   if (player.damage >= 2) {
-    showGameNavOnce(
+    showGameNav(
       "danger",
       "surprised",
       "あと1回当たったら危ないよ！無理せず避けて！",
@@ -96,7 +109,7 @@ function updateGameNav() {
   }
 
   if (player.damage >= 1) {
-    showGameNavOnce(
+    showGameNav(
       "firstDamage",
       "sad",
       "あー、当たっちゃった。無理せず避けてこ！",
@@ -106,49 +119,77 @@ function updateGameNav() {
   }
 
   if (clearCombo >= 50) {
-    showGameNavOnce(
+    showGameNav(
       "combo50",
       "surprised",
       "50コンボぉ！？そこまでいけるんだ！？",
       210,
-      5
+      5,
+      {
+        once: false,
+        cooldown: 300
+      }
     );
   } else if (clearCombo >= 30) {
-    showGameNavOnce(
+    showGameNav(
       "combo30",
       "surprised",
       "30コンボ！それはちょっとやりすぎじゃない！？",
       210,
-      4
+      4,
+      {
+        once: false,
+        cooldown: 300
+      }
     );
   } else if (clearCombo >= 10) {
-    showGameNavOnce(
+    showGameNav(
       "combo10",
       "laugh",
       "おー！10コンボ達成！やりますなぁ",
       180,
-      3
+      3,
+      {
+        once: false,
+        cooldown: 300
+      }
     );
   }
 
   if (parryCount >= MAX_PARRY) {
-    showGameNavOnce(
+    showGameNav(
       "stakeReady",
       "wink",
-      "電気きた！Xで超電磁杭いけるよ！",
+      "チャージ完了！Xで超電磁杭だよ！",
       180,
-      4
+      4,
+      {
+        once: false,
+        cooldown: 300
+      }
     );
   }
 }
 
-function showGameNavOnce(id, face, text, frames, priority) {
+function showGameNav(id, face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1, options = {}) {
 
-  if (gameNavFlags[id]) return;
+  const once = options.once ?? true;
+  const cooldown = options.cooldown ?? 0;
 
-  if (showGameNav(face, text, frames, priority)) {
-    gameNavFlags[id] = true;
+  if (once && gameNavFlags[id]) return false;
+  if (!once && gameNavCooldowns[id] > 0) return false;
+
+  if (!setGameNavMessage(face, text, frames, priority)) {
+    return false;
   }
+
+  if (once) {
+    gameNavFlags[id] = true;
+  } else if (cooldown > 0) {
+    gameNavCooldowns[id] = cooldown;
+  }
+
+  return true;
 }
 
 function markGameNavParryUsed() {
@@ -158,7 +199,7 @@ function markGameNavParryUsed() {
   gameNavParryUseCount++;
 }
 
-function showGameNav(face, text, frames = GAME_NAV_DEFAULT_FRAMES, priority = 1) {
+function setGameNavMessage(face, text, frames, priority) {
 
   if (
     gameNavMessage &&
