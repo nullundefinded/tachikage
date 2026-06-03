@@ -6,8 +6,7 @@
 // 超電磁杭
 // ====================
 
-const stakeImg = new Image();
-stakeImg.src = "images/stake.png";
+const stakeImg = loadImage("stake", "images/stake.png");
 
 // ====================
 // 超電磁杭生成

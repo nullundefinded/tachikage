@@ -7,13 +7,9 @@ const ctx = canvas.getContext("2d");
 // 背景画像
 // ====================
 
-const bg1 = new Image();
-const bg2 = new Image();
-const titleBgImg = new Image();
-
-bg1.src = "images/background1.png";
-bg2.src = "images/background2.png";
-titleBgImg.src = "images/title.png";
+const bg1 = loadImage("background1", "images/background1.png");
+const bg2 = loadImage("background2", "images/background2.png");
+const titleBgImg = loadImage("title", "images/title.png");
 
 const backgrounds = [
   { img: bg1, x: 0 },
@@ -33,7 +29,7 @@ function imageReady(img) {
 let keys = {};
 let score = 0;
 let gameOver = false;
-let gameState = "title";
+let gameState = "loading";
 let frame = 0;
 let trailPoints = [];
 let parryCount = 0;
@@ -169,7 +165,17 @@ function updateBackground() {
 // 更新
 // ====================
 
+function updateLoading() {
+  if (isAssetLoadComplete()) {
+    enterTitle();
+  }
+}
+
 function update() {
+  if (gameState === "loading") {
+    updateLoading();
+    return;
+  }
   if (gameState === "title") return;
   if (gameState === "config") return;
   if (gameState === "credits") return;
@@ -329,6 +335,9 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   switch (gameState) {
+    case "loading":
+      drawLoading();
+      break;
     case "title":
       drawTitle();
       break;

@@ -3,18 +3,12 @@
 // ====================
 
 const gameNavFaces = {
-  normal: new Image(),
-  laugh: new Image(),
-  sad: new Image(),
-  surprised: new Image(),
-  wink: new Image()
+  normal: loadImage("gameNav.face.normal", "images/sherry_face_normal.png"),
+  laugh: loadImage("gameNav.face.laugh", "images/sherry_face_laugh.png"),
+  sad: loadImage("gameNav.face.sad", "images/sherry_face_sad.png"),
+  surprised: loadImage("gameNav.face.surprised", "images/sherry_face_surprised.png"),
+  wink: loadImage("gameNav.face.wink", "images/sherry_face_wink.png")
 };
-
-gameNavFaces.normal.src = "images/sherry_face_normal.png";
-gameNavFaces.laugh.src = "images/sherry_face_laugh.png";
-gameNavFaces.sad.src = "images/sherry_face_sad.png";
-gameNavFaces.surprised.src = "images/sherry_face_surprised.png";
-gameNavFaces.wink.src = "images/sherry_face_wink.png";
 
 let gameNavMessage = null;
 let gameNavTimer = 0;

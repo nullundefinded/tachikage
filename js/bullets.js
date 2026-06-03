@@ -2,8 +2,7 @@
 // Bullets
 // ====================
 
-const bulletImg = new Image();
-bulletImg.src = "images/bullet.png";
+const bulletImg = loadImage("bullet", "images/bullet.png");
 
 let bullets = [];
 

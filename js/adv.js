@@ -9,21 +9,15 @@ const storyMaskCtx = storyMaskCanvas.getContext("2d");
 
 const storyImages = {
   tachikage: {
-    normal: new Image(),
-    laugh: new Image()
+    normal: loadImage("story.tachikage.normal", "images/tachikage_normal.png"),
+    laugh: loadImage("story.tachikage.laugh", "images/tachikage_laugh.png")
   },
   sherry: {
-    normal: new Image(),
-    laugh: new Image(),
-    smug: new Image()
+    normal: loadImage("story.sherry.normal", "images/sherry_normal.png"),
+    laugh: loadImage("story.sherry.laugh", "images/sherry_laugh.png"),
+    smug: loadImage("story.sherry.smug", "images/sherry_smug.png")
   }
 };
-
-storyImages.tachikage.normal.src = "images/tachikage_normal.png";
-storyImages.tachikage.laugh.src = "images/tachikage_laugh.png";
-storyImages.sherry.normal.src = "images/sherry_normal.png";
-storyImages.sherry.laugh.src = "images/sherry_laugh.png";
-storyImages.sherry.smug.src = "images/sherry_smug.png";
 
 let storyLineIndex = 0;
 

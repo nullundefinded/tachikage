@@ -179,9 +179,12 @@ const SPECIAL_READY_CENTER_Y = 100;
 const specialReadyImgs = [];
 
 for (let i = 0; i < SPECIAL_READY_FRAME_COUNT; i++) {
-  const img = new Image();
-  img.src = `images/effects/special_ready_${i}.png`;
-  specialReadyImgs.push(img);
+  specialReadyImgs.push(
+    loadImage(
+      `specialReady.${i}`,
+      `images/effects/special_ready_${i}.png`
+    )
+  );
 }
 
 function drawSpecialReadyEffect() {
@@ -302,13 +305,19 @@ const stakeHelixImgs = {
 };
 
 for (let i = 0; i < STAKE_HELIX_FRAME_COUNT; i++) {
-  const backImg = new Image();
-  backImg.src = `images/effects/stake_helix_back_${i}.png`;
-  stakeHelixImgs.back.push(backImg);
+  stakeHelixImgs.back.push(
+    loadImage(
+      `stakeHelix.back.${i}`,
+      `images/effects/stake_helix_back_${i}.png`
+    )
+  );
 
-  const frontImg = new Image();
-  frontImg.src = `images/effects/stake_helix_front_${i}.png`;
-  stakeHelixImgs.front.push(frontImg);
+  stakeHelixImgs.front.push(
+    loadImage(
+      `stakeHelix.front.${i}`,
+      `images/effects/stake_helix_front_${i}.png`
+    )
+  );
 }
 
 function drawStakeHelix(s, front) {

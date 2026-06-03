@@ -3,18 +3,12 @@
 // ====================
 
 const tutorialSherryFaces = {
-  normal: new Image(),
-  laugh: new Image(),
-  sad: new Image(),
-  surprised: new Image(),
-  wink: new Image()
+  normal: loadImage("tutorial.face.normal", "images/sherry_face_normal.png"),
+  laugh: loadImage("tutorial.face.laugh", "images/sherry_face_laugh.png"),
+  sad: loadImage("tutorial.face.sad", "images/sherry_face_sad.png"),
+  surprised: loadImage("tutorial.face.surprised", "images/sherry_face_surprised.png"),
+  wink: loadImage("tutorial.face.wink", "images/sherry_face_wink.png")
 };
-
-tutorialSherryFaces.normal.src = "images/sherry_face_normal.png";
-tutorialSherryFaces.laugh.src = "images/sherry_face_laugh.png";
-tutorialSherryFaces.sad.src = "images/sherry_face_sad.png";
-tutorialSherryFaces.surprised.src = "images/sherry_face_surprised.png";
-tutorialSherryFaces.wink.src = "images/sherry_face_wink.png";
 
 let tutorialStepIndex = 0;
 let tutorialStepTimer = 0;

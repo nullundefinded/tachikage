@@ -2,14 +2,11 @@
 // Player
 // ====================
 
-const playerImg = new Image();
-playerImg.src = "images/player.png";
+const playerImg = loadImage("player.normal", "images/player.png");
 
-const playerRailstakeReadyImg = new Image();
-playerRailstakeReadyImg.src = "images/player_railstake_ready.png";
+const playerRailstakeReadyImg = loadImage("player.railstake.ready", "images/player_railstake_ready.png");
 
-const playerRailstakeThrowImg = new Image();
-playerRailstakeThrowImg.src = "images/player_railstake_throw.png";
+const playerRailstakeThrowImg = loadImage("player.railstake.throw", "images/player_railstake_throw.png");
 
 const player = {
   x: 100,
