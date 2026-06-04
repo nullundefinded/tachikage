@@ -14,6 +14,20 @@ const player = {
   w: 120,
   h: 120,
 
+  hitBox: {
+    offsetX: 24,
+    offsetY: 20,
+    w: 72,
+    h: 84
+  },
+
+  parryBox: {
+    offsetX: 0,
+    offsetY: 0,
+    w: 120,
+    h: 120
+  },
+
   speed: 5,
   normalSpeed: 5,
   boostSpeed: 10,
@@ -30,6 +44,24 @@ const player = {
   specialTimer: 0,
   stakeFired: false
 };
+
+function getPlayerHitBox() {
+  return {
+    x: player.x + player.hitBox.offsetX,
+    y: player.y + player.hitBox.offsetY,
+    w: player.hitBox.w,
+    h: player.hitBox.h
+  };
+}
+
+function getPlayerParryBox() {
+  return {
+    x: player.x + player.parryBox.offsetX,
+    y: player.y + player.parryBox.offsetY,
+    w: player.parryBox.w,
+    h: player.parryBox.h
+  };
+}
 
 // ====================
 // Player Update

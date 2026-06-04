@@ -41,10 +41,18 @@ function drawHitBoxes() {
   ctx.save();
 
   drawHitBox(
-    player,
+    getPlayerParryBox(),
     {
-      fill: "rgba(80,255,120,0.12)",
-      stroke: "rgba(80,255,120,0.85)"
+      fill: "rgba(80,255,120,0.08)",
+      stroke: "rgba(80,255,120,0.45)"
+    }
+  );
+
+  drawHitBox(
+    getPlayerHitBox(),
+    {
+      fill: "rgba(80,210,255,0.18)",
+      stroke: "rgba(80,230,255,0.95)"
     }
   );
 

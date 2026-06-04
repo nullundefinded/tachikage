@@ -73,10 +73,10 @@ function updateBullets() {
 
     const b = bullets[i];
 
-    if (!hit(player, b)) continue;
-
     // スピン中ならパリィ
     if (player.spin) {
+
+      if (!hit(getPlayerParryBox(), b)) continue;
 
       bullets.splice(i, 1);
 
@@ -97,6 +97,8 @@ function updateBullets() {
 
     // 通常時なら被弾
     if (player.invincible <= 0) {
+
+      if (!hit(getPlayerHitBox(), b)) continue;
 
       bullets.splice(i, 1);
       resetBulletClearCombo();
