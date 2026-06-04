@@ -37,6 +37,7 @@ const player = {
 
   spin: false,
   spinTimer: 0,
+  spinCooldown: 0,
   rotation: 0,
 
   special: false,
@@ -69,6 +70,10 @@ function getPlayerParryBox() {
 
 function updatePlayer() {
 
+  if (player.spinCooldown > 0) {
+    player.spinCooldown--;
+  }
+
   // スピン中処理
   if (player.spin) {
 
@@ -90,6 +95,7 @@ function updatePlayer() {
     if (player.spinTimer >= spinTotal) {
       player.spin = false;
       player.spinTimer = 0;
+      player.spinCooldown = 5;
       player.rotation = 0;
       player.speed = player.normalSpeed;
     }

@@ -113,7 +113,8 @@ function handlePlayingKey(e) {
   if (
     e.code === "Space" &&
     !e.repeat &&
-    !player.spin
+    !player.spin &&
+    player.spinCooldown <= 0
   ) {
     player.spin = true;
     player.spinTimer = 0;

@@ -100,6 +100,7 @@ function resetGame() {
 
   player.spin = false;
   player.spinTimer = 0;
+  player.spinCooldown = 0;
   player.rotation = 0;
   player.speed = player.normalSpeed;
   player.special = false;
