@@ -39,6 +39,9 @@ let titleMenuIndex = 0;
 let clearCombo = 0;
 let clearComboTimer = 0;
 
+const DEV_START_BOSS =
+  new URLSearchParams(location.search).get("boss") === "1";
+
 const MAX_PARRY = 3;
 const SPECIAL_READY_FRAMES = 12;
 const SPECIAL_THROW_FRAMES = 14;
@@ -68,6 +71,13 @@ function enterPlaying() {
   resetGame();
   resetGameNav();
   gameState = "playing";
+}
+
+function enterBoss() {
+  resetGame();
+  resetGameNav();
+  score = 1000 * SCORE_DISPLAY_SCALE;
+  gameState = "boss";
 }
 
 function enterStory() {
@@ -168,8 +178,63 @@ function updateBackground() {
 
 function updateLoading() {
   if (isAssetLoadComplete()) {
+    if (DEV_START_BOSS) {
+      enterBoss();
+      return;
+    }
+
     enterTitle();
   }
+}
+
+function updateActionCommon(options = {}) {
+
+  const addScore = options.addScore ?? false;
+  const spawnBullets = options.spawnBullets ?? false;
+
+  frame++;
+  // プレイヤー動作
+  updatePlayer();
+  // 必殺技演出
+  updateSpecial();
+  // 背景スクロール
+  updateBackground();
+  // スコア
+  if (addScore) {
+    score += 1;
+  }
+  // 弾消しコンボ時間
+  if (clearComboTimer > 0) {
+    clearComboTimer--;
+
+    if (clearComboTimer <= 0) {
+      resetBulletClearCombo();
+    }
+  }
+  // 弾生成
+  if (spawnBullets) {
+    let difficulty = Math.floor(score / 600);
+    updateBulletSpawner(difficulty);
+  }
+  // 超電磁杭更新
+  updateStake();
+  // 弾更新
+  updateBullets();
+  // エフェクト
+  updateEffects();
+  // ゲーム中ナビ
+  updateGameNav();
+}
+
+function updatePlaying() {
+  updateActionCommon({
+    addScore: true,
+    spawnBullets: true
+  });
+}
+
+function updateBoss() {
+  updateActionCommon();
 }
 
 function update() {
@@ -192,35 +257,13 @@ function update() {
     updateGameNav();
     return;
   }
-  frame++;
-  // プレイヤー動作
-  updatePlayer();
-  // 必殺技演出
-  updateSpecial();
-  // 背景スクロール
-  updateBackground();
-  // スコア
-  score += 1;
-  // 弾消しコンボ時間
-  if (clearComboTimer > 0) {
-    clearComboTimer--;
-
-    if (clearComboTimer <= 0) {
-      resetBulletClearCombo();
-    }
+  if (gameState === "boss") {
+    updateBoss();
+    return;
   }
-  // 難易度上昇
-  let difficulty = Math.floor(score / 600);
-  // 弾生成
-  updateBulletSpawner(difficulty);
-  // 超電磁杭更新
-  updateStake();
-  // 弾更新
-  updateBullets();
-  // エフェクト
-  updateEffects();
-  // ゲーム中ナビ
-  updateGameNav();
+  if (gameState === "playing") {
+    updatePlaying();
+  }
 }
 
 // ====================
@@ -327,6 +370,12 @@ function drawGame() {
   drawUI();
 }
 
+function drawBossGame() {
+
+  drawGame();
+  drawBossPlaceholder();
+}
+
 // ====================
 // 描画入口
 // ====================
@@ -357,6 +406,9 @@ function draw() {
     case "playing":
       drawGame();
       break;
+    case "boss":
+      drawBossGame();
+      break;
   }
 }
 
@@ -375,7 +427,10 @@ function loop() {
   perfMeasureDraw(() => {
     draw();
     drawDebugUI();
-    if (gameState === "playing") {
+    if (
+      gameState === "playing" ||
+      gameState === "boss"
+    ) {
       drawGameNav();
     } else if (
       gameState !== "story" &&

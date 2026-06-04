@@ -38,7 +38,10 @@ document.addEventListener("keydown", e => {
     return;
   }
 
-  if (gameState === "playing") {
+  if (
+    gameState === "playing" ||
+    gameState === "boss"
+  ) {
     handlePlayingKey(e);
   }
 
@@ -132,6 +135,14 @@ function handlePlayingKey(e) {
 function handleGameOverKey(e) {
 
   if (e.key === "Enter") {
+    if (
+      gameState === "boss" ||
+      DEV_START_BOSS
+    ) {
+      enterBoss();
+      return;
+    }
+
     enterPlaying();
   }
 

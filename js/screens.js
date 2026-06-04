@@ -59,6 +59,34 @@ function drawLoading() {
 }
 
 // ====================
+// ボス仮画面描画
+// ====================
+
+function drawBossPlaceholder() {
+
+  ctx.save();
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = "rgba(255,80,130,0.92)";
+  ctx.font = "22px sans-serif";
+  ctx.fillText(
+    "BOSS MODE",
+    canvas.width - 24,
+    34
+  );
+
+  ctx.fillStyle = "rgba(255,255,255,0.74)";
+  ctx.font = "14px sans-serif";
+  ctx.fillText(
+    "prototype",
+    canvas.width - 24,
+    56
+  );
+
+  ctx.restore();
+}
+
+// ====================
 // タイトル画面描画
 // ====================
 
