@@ -76,6 +76,7 @@ function enterPlaying() {
 function enterBoss() {
   resetGame();
   resetGameNav();
+  resetBoss();
   score = 1000 * SCORE_DISPLAY_SCALE;
   gameState = "boss";
 }
@@ -235,6 +236,7 @@ function updatePlaying() {
 
 function updateBoss() {
   updateActionCommon();
+  updateBossEnemy();
 }
 
 function update() {
@@ -372,7 +374,31 @@ function drawGame() {
 
 function drawBossGame() {
 
-  drawGame();
+  // 背景
+  drawBackground();
+
+  // エフェクト
+  drawEffects();
+
+  // ボス
+  drawBossEnemy();
+
+  // プレイヤー
+  drawPlayer();
+
+  // 弾
+  drawBullets();
+
+  // 超電磁杭
+  drawStake();
+
+  // 当たり判定
+  drawHitBoxes();
+  drawBossHitBoxes();
+
+  // UI
+  drawUI();
+
   drawBossPlaceholder();
 }
 
