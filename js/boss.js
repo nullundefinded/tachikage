@@ -13,6 +13,14 @@ const BOSS_PARRY_BULLET_INTERVAL = 80;
 const BOSS_PARRY_BULLET_START_DELAY = 45;
 const BOSS_PARRY_BULLET_SPEED = 2.8;
 const BOSS_PARRY_BULLET_MAX = 2;
+const BOSS_FLOAT_AMPLITUDE = 200;
+const BOSS_FLOAT_SPEED = 0.025;
+const BOSS_MAX_LIFE = 5;
+const BOSS_RANDOM_MOVE_LIFE = 2;
+const BOSS_RANDOM_MOVE_COUNT = 3;
+const BOSS_RANDOM_MOVE_SHORT_STOP_FRAMES = 10;
+const BOSS_RANDOM_MOVE_STOP_FRAMES = 30;
+const BOSS_WARP_EFFECT_FRAMES = 14;
 
 const boss = {
   body: {
@@ -43,6 +51,14 @@ const boss = {
   bodyGuardImpactY: 0,
   bodyGuardSide: 1,
   weakHitTimer: 0,
+  life: BOSS_MAX_LIFE,
+  floatTimer: 0,
+  floatOffsetY: 0,
+  randomMoveStopTimer: 0,
+  randomMoveCount: 0,
+  warpTimer: 0,
+  warpFromOffsetY: 0,
+  warpToOffsetY: 0,
   parryBulletTimer: BOSS_PARRY_BULLET_START_DELAY
 };
 
@@ -52,13 +68,29 @@ function resetBoss() {
   boss.bodyGuardImpactY = 0;
   boss.bodyGuardSide = 1;
   boss.weakHitTimer = 0;
+  boss.life = BOSS_MAX_LIFE;
+  boss.floatTimer = 0;
+  boss.floatOffsetY = 0;
+  boss.randomMoveStopTimer = 0;
+  boss.randomMoveCount = 0;
+  boss.warpTimer = 0;
+  boss.warpFromOffsetY = 0;
+  boss.warpToOffsetY = 0;
   boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
+}
+
+function getBossBodyY() {
+  return boss.body.y + boss.floatOffsetY;
+}
+
+function getBossWeakY() {
+  return boss.weak.y + boss.floatOffsetY;
 }
 
 function getBossBodyBox() {
   return {
     x: boss.body.x + boss.body.hitBox.offsetX,
-    y: boss.body.y + boss.body.hitBox.offsetY,
+    y: getBossBodyY() + boss.body.hitBox.offsetY,
     w: boss.body.hitBox.w,
     h: boss.body.hitBox.h
   };
@@ -67,7 +99,7 @@ function getBossBodyBox() {
 function getBossWeakBox() {
   return {
     x: boss.weak.x + boss.weak.hitBox.offsetX,
-    y: boss.weak.y + boss.weak.hitBox.offsetY,
+    y: getBossWeakY() + boss.weak.hitBox.offsetY,
     w: boss.weak.hitBox.w,
     h: boss.weak.hitBox.h
   };
@@ -106,8 +138,59 @@ function updateBossParryBullets() {
   boss.parryBulletTimer = BOSS_PARRY_BULLET_INTERVAL;
 }
 
+function getRandomBossFloatOffsetY() {
+  return (Math.random() * 2 - 1) * BOSS_FLOAT_AMPLITUDE;
+}
+
+function startBossWarpEffect(fromOffsetY, toOffsetY) {
+  boss.warpTimer = BOSS_WARP_EFFECT_FRAMES;
+  boss.warpFromOffsetY = fromOffsetY;
+  boss.warpToOffsetY = toOffsetY;
+}
+
+function updateBossRandomMovement() {
+
+  if (boss.randomMoveStopTimer > 0) {
+    boss.randomMoveStopTimer--;
+    return;
+  }
+
+  if (boss.randomMoveCount >= BOSS_RANDOM_MOVE_COUNT) {
+    boss.randomMoveCount = 0;
+    boss.randomMoveStopTimer = BOSS_RANDOM_MOVE_STOP_FRAMES;
+    return;
+  }
+
+  const fromOffsetY = boss.floatOffsetY;
+  boss.floatOffsetY = getRandomBossFloatOffsetY();
+  startBossWarpEffect(fromOffsetY, boss.floatOffsetY);
+  boss.randomMoveCount++;
+
+  if (boss.randomMoveCount < BOSS_RANDOM_MOVE_COUNT) {
+    boss.randomMoveStopTimer = BOSS_RANDOM_MOVE_SHORT_STOP_FRAMES;
+  }
+}
+
+function updateBossMovement() {
+
+  if (boss.life <= BOSS_RANDOM_MOVE_LIFE) {
+    updateBossRandomMovement();
+    return;
+  }
+
+  boss.floatTimer++;
+  boss.floatOffsetY =
+    Math.sin(boss.floatTimer * BOSS_FLOAT_SPEED) *
+    BOSS_FLOAT_AMPLITUDE;
+}
+
 function updateBossEnemy() {
 
+  if (boss.warpTimer > 0) {
+    boss.warpTimer--;
+  }
+
+  updateBossMovement();
   updateBossParryBullets();
 
   if (boss.bodyGuardTimer > 0) {
@@ -123,8 +206,10 @@ function updateBossEnemy() {
 
   stakes.forEach(stake => {
 
-    if (hit(stake, weakBox)) {
+    if (!stake.bossWeakHit && hit(stake, weakBox)) {
       boss.weakHitTimer = BOSS_WEAK_HIT_FRAMES;
+      boss.life = Math.max(0, boss.life - 1);
+      stake.bossWeakHit = true;
       return;
     }
 
@@ -176,7 +261,7 @@ function drawBossBodyImage(box, guardPower) {
   }
 
   const centerX = boss.body.x + boss.body.w / 2;
-  const centerY = boss.body.y + boss.body.h / 2;
+  const centerY = getBossBodyY() + boss.body.h / 2;
   const holeX = Math.max(
     0,
     Math.min(boss.bodyGuardImpactX - centerX - box.x, box.w)
@@ -313,6 +398,117 @@ function drawBossBodyGuardEffect(guardPower) {
   ctx.restore();
 }
 
+function drawBossLifeBar() {
+
+  const barW = 180;
+  const barH = 10;
+  const x = canvas.width - barW - 24;
+  const y = 76;
+  const rate = boss.life / BOSS_MAX_LIFE;
+
+  ctx.save();
+
+  ctx.textAlign = "right";
+  ctx.fillStyle = "rgba(255,255,255,0.82)";
+  ctx.font = "14px sans-serif";
+  ctx.fillText(
+    `BOSS LIFE ${boss.life} / ${BOSS_MAX_LIFE}`,
+    canvas.width - 24,
+    y - 8
+  );
+
+  ctx.fillStyle = "rgba(255,255,255,0.16)";
+  ctx.fillRect(x, y, barW, barH);
+
+  ctx.fillStyle = "rgba(255,80,130,0.92)";
+  ctx.fillRect(x, y, barW * rate, barH);
+
+  ctx.strokeStyle = "rgba(255,255,255,0.68)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, barW, barH);
+
+  ctx.restore();
+}
+
+function drawBossWarpEffect(ufoH) {
+
+  if (boss.warpTimer <= 0) return;
+
+  const rate = boss.warpTimer / BOSS_WARP_EFFECT_FRAMES;
+  const fromBodyY = boss.body.y + boss.warpFromOffsetY;
+  const fromWeakY = boss.weak.y + boss.warpFromOffsetY;
+  const toCenterX = boss.body.x + boss.body.w / 2;
+  const toCenterY = boss.body.y + boss.warpToOffsetY + boss.body.h / 2;
+  const ringRadius = 42 + (1 - rate) * 34;
+
+  ctx.save();
+  ctx.globalAlpha = rate * 0.34;
+
+  drawBossImage(
+    bossImages.ufo,
+    {
+      x: boss.weak.x,
+      y: fromWeakY,
+      w: boss.weak.w,
+      h: ufoH
+    }
+  );
+
+  drawBossImage(
+    bossImages.stand,
+    {
+      x: boss.body.x,
+      y: fromBodyY,
+      w: boss.body.w,
+      h: boss.body.h
+    }
+  );
+
+  ctx.restore();
+  ctx.save();
+
+  ctx.globalCompositeOperation = "lighter";
+  ctx.lineCap = "round";
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = "rgba(90,220,255,0.95)";
+  ctx.strokeStyle = `rgba(120,235,255,${rate * 0.72})`;
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+  ctx.ellipse(
+    toCenterX,
+    toCenterY,
+    ringRadius,
+    ringRadius * 0.58,
+    0,
+    0,
+    Math.PI * 2
+  );
+  ctx.stroke();
+
+  ctx.strokeStyle = `rgba(255,120,230,${rate * 0.46})`;
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i < 5; i++) {
+    const angle = frame * 0.12 + i * Math.PI * 2 / 5;
+    const startRadius = 20 + i * 5;
+    const endRadius = ringRadius + 26;
+
+    ctx.beginPath();
+    ctx.moveTo(
+      toCenterX + Math.cos(angle) * startRadius,
+      toCenterY + Math.sin(angle) * startRadius * 0.58
+    );
+    ctx.lineTo(
+      toCenterX + Math.cos(angle) * endRadius,
+      toCenterY + Math.sin(angle) * endRadius * 0.58
+    );
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 function drawBossEnemy() {
 
   const ufoH =
@@ -322,7 +518,7 @@ function drawBossEnemy() {
 
   const weakDrawBox = {
     x: boss.weak.x,
-    y: boss.weak.y,
+    y: getBossWeakY(),
     w: boss.weak.w,
     h: ufoH
   };
@@ -338,6 +534,8 @@ function drawBossEnemy() {
       )
       : 0;
 
+  drawBossWarpEffect(ufoH);
+
   ctx.save();
 
   if (boss.weakHitTimer > 0) {
@@ -351,7 +549,7 @@ function drawBossEnemy() {
 
   ctx.translate(
     boss.body.x + boss.body.w / 2,
-    boss.body.y + boss.body.h / 2
+    getBossBodyY() + boss.body.h / 2
   );
 
   drawBossBodyImage(
@@ -367,6 +565,7 @@ function drawBossEnemy() {
   ctx.restore();
 
   drawBossBodyGuardEffect(bodyGuardPower);
+  drawBossLifeBar();
 }
 
 function drawBossHitBoxes() {
