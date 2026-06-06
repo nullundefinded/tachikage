@@ -275,19 +275,44 @@ function drawBossWarpEffect(ufoH) {
   ctx.restore();
 }
 
+function drawBossWeakExplosions() {
+
+  if (boss.weakExplosions.length <= 0) return;
+  if (!imageReady(bossImages.weakExplosion)) return;
+
+  ctx.save();
+
+  boss.weakExplosions.forEach(explosion => {
+
+    const animAge = explosion.age - explosion.delay;
+    if (animAge < 0) return;
+
+    const frameIndex = Math.min(
+      BOSS_WEAK_EXPLOSION_FRAME_COUNT - 1,
+      Math.floor(animAge)
+    );
+    const drawW = BOSS_WEAK_EXPLOSION_FRAME_W * explosion.scale;
+    const drawH = BOSS_WEAK_EXPLOSION_FRAME_H * explosion.scale;
+
+    ctx.drawImage(
+      bossImages.weakExplosion,
+      frameIndex * BOSS_WEAK_EXPLOSION_FRAME_W,
+      0,
+      BOSS_WEAK_EXPLOSION_FRAME_W,
+      BOSS_WEAK_EXPLOSION_FRAME_H,
+      explosion.x - drawW / 2,
+      explosion.y - drawH / 2,
+      drawW,
+      drawH
+    );
+  });
+
+  ctx.restore();
+}
+
 function drawBossEnemy() {
 
-  const ufoH =
-    imageReady(bossImages.ufo)
-      ? boss.weak.w * bossImages.ufo.naturalHeight / bossImages.ufo.naturalWidth
-      : 114;
-
-  const weakDrawBox = {
-    x: boss.weak.x,
-    y: getBossWeakY(),
-    w: boss.weak.w,
-    h: ufoH
-  };
+  const weakDrawBox = getBossWeakDrawBox();
 
   const bodyPulse =
     boss.bodyGuardTimer > 0
@@ -300,15 +325,19 @@ function drawBossEnemy() {
       )
       : 0;
 
-  drawBossWarpEffect(ufoH);
+  drawBossWarpEffect(weakDrawBox.h);
 
   ctx.save();
 
-  if (boss.weakHitTimer > 0) {
-    ctx.globalAlpha = 0.78 + Math.sin(frame * 1.2) * 0.18;
+  const weakBlinkHidden =
+    boss.weakHitTimer > 0 &&
+    Math.floor(boss.weakHitTimer / 5) % 2 !== 0;
+
+  if (!weakBlinkHidden) {
+    drawBossImage(bossImages.ufo, weakDrawBox);
   }
 
-  drawBossImage(bossImages.ufo, weakDrawBox);
+  drawBossWeakExplosions();
 
   ctx.restore();
   ctx.save();

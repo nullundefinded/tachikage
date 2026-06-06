@@ -4,16 +4,26 @@
 
 const bossImages = {
   ufo: loadImage("boss.ufo", "images/UFO.png"),
-  stand: loadImage("boss.gulu.stand", "images/gulu_balad_stand.png")
+  stand: loadImage("boss.gulu.stand", "images/gulu_balad_stand.png"),
+  weakExplosion: loadImage(
+    "boss.weak.explosion",
+    "images/effects/ufo_explosion_sheet.png"
+  )
 };
 
 const BOSS_BODY_GUARD_FRAMES = 18;
-const BOSS_WEAK_HIT_FRAMES = 12;
+const BOSS_WEAK_HIT_FRAMES = 60;
 const BOSS_PARRY_BULLET_INTERVAL = 80;
 const BOSS_PARRY_BULLET_START_DELAY = 45;
 const BOSS_PARRY_BULLET_SPEED = 2.8;
 const BOSS_PARRY_BULLET_MAX = 2;
 const BOSS_MAX_LIFE = 5;
+const BOSS_WEAK_EXPLOSION_FRAME_COUNT = 10;
+const BOSS_WEAK_EXPLOSION_FRAME_W = 96;
+const BOSS_WEAK_EXPLOSION_FRAME_H = 96;
+const BOSS_WEAK_EXPLOSION_MIN_COUNT = 8;
+const BOSS_WEAK_EXPLOSION_MAX_COUNT = 12;
+const BOSS_WEAK_EXPLOSION_IMPACT_COUNT = 2;
 
 const boss = {
   body: {
@@ -52,6 +62,7 @@ const boss = {
   warpTimer: 0,
   warpFromOffsetY: 0,
   warpToOffsetY: 0,
+  weakExplosions: [],
   parryBulletTimer: BOSS_PARRY_BULLET_START_DELAY
 };
 
@@ -69,6 +80,7 @@ function resetBoss() {
   boss.warpTimer = 0;
   boss.warpFromOffsetY = 0;
   boss.warpToOffsetY = 0;
+  boss.weakExplosions = [];
   boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
 }
 
@@ -87,6 +99,21 @@ function getBossWeakBox() {
     y: getBossWeakY() + boss.weak.hitBox.offsetY,
     w: boss.weak.hitBox.w,
     h: boss.weak.hitBox.h
+  };
+}
+
+function getBossWeakDrawBox() {
+
+  const ufoH =
+    imageReady(bossImages.ufo)
+      ? boss.weak.w * bossImages.ufo.naturalHeight / bossImages.ufo.naturalWidth
+      : 114;
+
+  return {
+    x: boss.weak.x,
+    y: getBossWeakY(),
+    w: boss.weak.w,
+    h: ufoH
   };
 }
 
@@ -123,10 +150,59 @@ function updateBossParryBullets() {
   boss.parryBulletTimer = BOSS_PARRY_BULLET_INTERVAL;
 }
 
+function addBossWeakExplosion(stake) {
+
+  const weakBox = getBossWeakBox();
+  const drawBox = getBossWeakDrawBox();
+  const impactX = stake
+    ? Math.max(weakBox.x, Math.min(stake.x + stake.w / 2, weakBox.x + weakBox.w))
+    : weakBox.x + weakBox.w / 2;
+  const impactY = stake
+    ? Math.max(weakBox.y, Math.min(stake.y + stake.h / 2, weakBox.y + weakBox.h))
+    : weakBox.y + weakBox.h / 2;
+  const count =
+    BOSS_WEAK_EXPLOSION_MIN_COUNT +
+    Math.floor(
+      Math.random() *
+      (BOSS_WEAK_EXPLOSION_MAX_COUNT - BOSS_WEAK_EXPLOSION_MIN_COUNT + 1)
+    );
+
+  for (let i = 0; i < count; i++) {
+
+    const isImpactExplosion = i < BOSS_WEAK_EXPLOSION_IMPACT_COUNT;
+    const x = isImpactExplosion
+      ? impactX + (Math.random() - 0.5) * weakBox.w * 0.42
+      : drawBox.x + drawBox.w * (0.12 + Math.random() * 0.76);
+    const y = isImpactExplosion
+      ? impactY + (Math.random() - 0.5) * weakBox.h * 0.72
+      : drawBox.y + drawBox.h * (0.16 + Math.random() * 0.68);
+
+    boss.weakExplosions.push({
+      x,
+      y,
+      scale: 0.78 + Math.random() * 0.44,
+      age: 0,
+      delay: Math.floor(Math.random() * 7)
+    });
+  }
+}
+
+function updateBossWeakExplosions() {
+
+  boss.weakExplosions.forEach(p => {
+    p.age++;
+  });
+
+  boss.weakExplosions = boss.weakExplosions.filter(
+    p => p.age - p.delay < BOSS_WEAK_EXPLOSION_FRAME_COUNT
+  );
+}
+
 function updateBossEnemy() {
 
   updateBossMovement();
   updateBossParryBullets();
+  updateBossWeakExplosions();
 
   if (boss.bodyGuardTimer > 0) {
     boss.bodyGuardTimer--;
@@ -144,6 +220,7 @@ function updateBossEnemy() {
     if (!stake.bossWeakHit && hit(stake, weakBox)) {
       boss.weakHitTimer = BOSS_WEAK_HIT_FRAMES;
       boss.life = Math.max(0, boss.life - 1);
+      addBossWeakExplosion(stake);
       stake.bossWeakHit = true;
       return;
     }
