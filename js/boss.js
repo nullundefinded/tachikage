@@ -7,6 +7,7 @@ const bossImages = {
   stand: loadImage("boss.gulu.stand", "images/gulu_balad_stand.png"),
   attack: loadImage("boss.gulu.attack", "images/gulu_balad_attack.png"),
   win: loadImage("boss.gulu.win", "images/gulu_balad_win.png"),
+  lose: loadImage("boss.gulu.lose", "images/gulu_balad_lose.png"),
   weakExplosion: loadImage(
     "boss.weak.explosion",
     "images/effects/ufo_explosion_sheet.png"
@@ -21,6 +22,13 @@ const BOSS_PARRY_BULLET_SPEED = 2.8;
 const BOSS_PARRY_BULLET_MAX = 2;
 const BOSS_ATTACK_IMAGE_FRAMES = 36;
 const BOSS_MAX_LIFE = 5;
+const BOSS_DEFEAT_FALL_START_SPEED = 1.8;
+const BOSS_DEFEAT_FALL_ACCEL = 0.22;
+const BOSS_DEFEAT_CLEAR_MARGIN = 30;
+const BOSS_DEFEAT_UFO_RISE_SPEED = 1.15;
+const BOSS_DEFEAT_UFO_TOP_Y = 100;
+const BOSS_DEFEAT_EXPLOSION_INTERVAL = 8;
+const BOSS_DEFEAT_EXPLOSION_COUNT = 3;
 const BOSS_WEAK_EXPLOSION_FRAME_COUNT = 10;
 const BOSS_WEAK_EXPLOSION_FRAME_W = 96;
 const BOSS_WEAK_EXPLOSION_FRAME_H = 96;
@@ -67,6 +75,11 @@ const boss = {
   warpFromOffsetY: 0,
   warpToOffsetY: 0,
   weakExplosions: [],
+  defeatPhase: "none",
+  defeatFallY: 0,
+  defeatFallSpeed: 0,
+  defeatUfoY: 0,
+  defeatExplosionTimer: 0,
   parryBulletTimer: BOSS_PARRY_BULLET_START_DELAY
 };
 
@@ -86,6 +99,11 @@ function resetBoss() {
   boss.warpFromOffsetY = 0;
   boss.warpToOffsetY = 0;
   boss.weakExplosions = [];
+  boss.defeatPhase = "none";
+  boss.defeatFallY = 0;
+  boss.defeatFallSpeed = 0;
+  boss.defeatUfoY = 0;
+  boss.defeatExplosionTimer = 0;
   boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
 }
 
@@ -116,7 +134,7 @@ function getBossWeakDrawBox() {
 
   return {
     x: boss.weak.x,
-    y: getBossWeakY(),
+    y: getBossWeakY() + boss.defeatUfoY,
     w: boss.weak.w,
     h: ufoH
   };
@@ -124,6 +142,68 @@ function getBossWeakDrawBox() {
 
 function countBossParryBullets() {
   return bullets.filter(b => b.bossParry).length;
+}
+
+function isBossDefeated() {
+  return boss.defeatPhase !== "none";
+}
+
+function isBossClear() {
+  return boss.defeatPhase === "clear";
+}
+
+function startBossDefeat() {
+
+  if (isBossDefeated()) return;
+
+  boss.defeatPhase = "ufoRise";
+  boss.defeatFallY = 0;
+  boss.defeatFallSpeed = 0;
+  boss.defeatUfoY = 0;
+  boss.defeatExplosionTimer = 0;
+  boss.attackTimer = 0;
+  boss.bodyGuardTimer = 0;
+  boss.weakHitTimer = 0;
+  boss.warpTimer = 0;
+  bullets = bullets.filter(b => !b.bossParry);
+}
+
+function updateBossDefeat() {
+
+  if (boss.defeatPhase === "ufoRise") {
+    const weakDrawBox = getBossWeakDrawBox();
+    const isUfoRising = weakDrawBox.y > BOSS_DEFEAT_UFO_TOP_Y;
+
+    if (isUfoRising) {
+      boss.defeatUfoY -= BOSS_DEFEAT_UFO_RISE_SPEED;
+    } else {
+      boss.defeatPhase = "fall";
+      boss.defeatFallSpeed = BOSS_DEFEAT_FALL_START_SPEED;
+      boss.defeatExplosionTimer = 0;
+      return;
+    }
+
+    if (boss.defeatExplosionTimer > 0) {
+      boss.defeatExplosionTimer--;
+    } else {
+      addBossDefeatUfoExplosions();
+      boss.defeatExplosionTimer = BOSS_DEFEAT_EXPLOSION_INTERVAL;
+    }
+
+    return;
+  }
+
+  if (boss.defeatPhase !== "fall") return;
+
+  boss.defeatFallSpeed += BOSS_DEFEAT_FALL_ACCEL;
+  boss.defeatFallY += boss.defeatFallSpeed;
+
+  if (
+    getBossBodyY() + boss.defeatFallY >
+    canvas.height + BOSS_DEFEAT_CLEAR_MARGIN
+  ) {
+    boss.defeatPhase = "clear";
+  }
 }
 
 function spawnBossParryBullet() {
@@ -206,6 +286,21 @@ function addBossWeakExplosion(stake) {
   }
 }
 
+function addBossDefeatUfoExplosions() {
+
+  const drawBox = getBossWeakDrawBox();
+
+  for (let i = 0; i < BOSS_DEFEAT_EXPLOSION_COUNT; i++) {
+    boss.weakExplosions.push({
+      x: drawBox.x + drawBox.w * (0.12 + Math.random() * 0.76),
+      y: drawBox.y + drawBox.h * (0.12 + Math.random() * 0.76),
+      scale: 0.78 + Math.random() * 0.5,
+      age: 0,
+      delay: Math.floor(Math.random() * 5)
+    });
+  }
+}
+
 function updateBossWeakExplosions() {
 
   boss.weakExplosions.forEach(p => {
@@ -219,9 +314,15 @@ function updateBossWeakExplosions() {
 
 function updateBossEnemy() {
 
+  updateBossWeakExplosions();
+
+  if (isBossDefeated()) {
+    updateBossDefeat();
+    return;
+  }
+
   updateBossMovement();
   updateBossParryBullets();
-  updateBossWeakExplosions();
 
   if (boss.bodyGuardTimer > 0) {
     boss.bodyGuardTimer--;
@@ -240,10 +341,15 @@ function updateBossEnemy() {
 
   stakes.forEach(stake => {
 
+    if (isBossDefeated()) return;
+
     if (!stake.bossWeakHit && hit(stake, weakBox)) {
       boss.weakHitTimer = BOSS_WEAK_HIT_FRAMES;
       boss.life = Math.max(0, boss.life - 1);
       addBossWeakExplosion(stake);
+      if (boss.life <= 0) {
+        startBossDefeat();
+      }
       stake.bossWeakHit = true;
       return;
     }

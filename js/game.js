@@ -235,6 +235,12 @@ function updatePlaying() {
 }
 
 function updateBoss() {
+  if (typeof isBossClear === "function" && isBossClear()) {
+    updateBackground();
+    updateGameNav();
+    return;
+  }
+
   updateActionCommon();
   updateBossEnemy();
 }
@@ -400,6 +406,8 @@ function drawBossGame() {
   drawUI();
 
   drawBossPlaceholder();
+
+  drawBossClearOverlay();
 }
 
 // ====================
@@ -455,7 +463,10 @@ function loop() {
     drawDebugUI();
     if (
       gameState === "playing" ||
-      gameState === "boss"
+      (
+        gameState === "boss" &&
+        !(typeof isBossClear === "function" && isBossClear())
+      )
     ) {
       drawGameNav();
     } else if (

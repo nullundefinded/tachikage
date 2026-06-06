@@ -25,6 +25,10 @@ function drawBossImage(img, box) {
 
 function getBossBodyImage() {
 
+  if (isBossDefeated() && imageReady(bossImages.lose)) {
+    return bossImages.lose;
+  }
+
   if (
     gameState === "boss" &&
     gameOver &&
@@ -340,14 +344,15 @@ function drawBossEnemy() {
   const isBossGameOver =
     gameState === "boss" &&
     gameOver;
+  const isDefeated = isBossDefeated();
   const weakDrawBox = getBossWeakDrawBox();
 
   const bodyPulse =
-    boss.bodyGuardTimer > 0 && !isBossGameOver
+    boss.bodyGuardTimer > 0 && !isBossGameOver && !isDefeated
       ? Math.sin(frame * 0.9) * 4
       : 0;
   const bodyGuardPower =
-    boss.bodyGuardTimer > 0 && !isBossGameOver
+    boss.bodyGuardTimer > 0 && !isBossGameOver && !isDefeated
       ? Math.sin(
         boss.bodyGuardTimer / BOSS_BODY_GUARD_FRAMES * Math.PI / 2
       )
@@ -376,7 +381,7 @@ function drawBossEnemy() {
     bodyDrawScale *
     (1 - winLaughBounce * BOSS_WIN_LAUGH_STRETCH_Y);
 
-  if (!isBossGameOver) {
+  if (!isBossGameOver && !isDefeated) {
     drawBossWarpEffect(weakDrawBox.h);
   }
 
@@ -397,7 +402,10 @@ function drawBossEnemy() {
 
   ctx.translate(
     boss.body.x + boss.body.w / 2,
-    getBossBodyY() + boss.body.h / 2
+    getBossBodyY() +
+      boss.body.h / 2 +
+      boss.defeatUfoY +
+      boss.defeatFallY
   );
 
   drawBossBodyImage(
@@ -416,9 +424,39 @@ function drawBossEnemy() {
   drawBossLifeBar();
 }
 
+function drawBossClearOverlay() {
+
+  if (!isBossClear()) return;
+
+  ctx.save();
+
+  ctx.fillStyle = "rgba(0,0,0,0.58)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "rgba(255,255,255,0.96)";
+  ctx.font = "56px sans-serif";
+  ctx.fillText(
+    "GAME CLEAR",
+    canvas.width / 2,
+    222
+  );
+
+  ctx.fillStyle = "rgba(210,245,255,0.82)";
+  ctx.font = "22px sans-serif";
+  ctx.fillText(
+    "GULU BALAD DEFEATED",
+    canvas.width / 2,
+    266
+  );
+
+  ctx.restore();
+}
+
 function drawBossHitBoxes() {
 
   if (!showHitBoxes) return;
+  if (isBossDefeated()) return;
 
   drawHitBox(
     getBossBodyBox(),
