@@ -55,12 +55,27 @@ function updateBullets() {
 
   // 弾移動
   bullets.forEach(b => {
+    if (Number.isFinite(b.vx) && Number.isFinite(b.vy)) {
+      b.x += b.vx;
+      b.y += b.vy;
+      return;
+    }
+
     b.x -= b.speed;
   });
 
   // 画面外削除
   bullets = bullets.filter(
-    b => b.x + b.w > 0
+    b => {
+      const margin = Math.max(b.w, b.h) * 2;
+
+      return (
+        b.x + b.w > -margin &&
+        b.x < canvas.width + margin &&
+        b.y + b.h > -margin &&
+        b.y < canvas.height + margin
+      );
+    }
   );
 
   // 無敵時間
@@ -120,6 +135,37 @@ function updateBullets() {
 // Bullet Draw
 // ====================
 
+function drawBulletImage(b, trailDistance) {
+
+  if (!imageReady(bulletImg)) return;
+
+  if (!Number.isFinite(b.angle)) {
+    ctx.drawImage(
+      bulletImg,
+      b.x + trailDistance,
+      b.y,
+      b.w,
+      b.h
+    );
+    return;
+  }
+
+  const centerX = b.x + b.w / 2 - Math.cos(b.angle) * trailDistance;
+  const centerY = b.y + b.h / 2 - Math.sin(b.angle) * trailDistance;
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(b.angle - Math.PI);
+  ctx.drawImage(
+    bulletImg,
+    -b.w / 2,
+    -b.h / 2,
+    b.w,
+    b.h
+  );
+  ctx.restore();
+}
+
 function drawBullets() {
 
   bullets.forEach(b => {
@@ -131,23 +177,11 @@ function drawBullets() {
 
     if (imageReady(bulletImg)) {
 
-      ctx.drawImage(
-        bulletImg,
-        b.x + 14,
-        b.y,
-        b.w,
-        b.h
-      );
+      drawBulletImage(b, 14);
 
       ctx.globalAlpha = 0.12;
 
-      ctx.drawImage(
-        bulletImg,
-        b.x + 28,
-        b.y,
-        b.w,
-        b.h
-      );
+      drawBulletImage(b, 28);
 
     }
 
@@ -156,13 +190,7 @@ function drawBullets() {
     // 本体
     if (imageReady(bulletImg)) {
 
-      ctx.drawImage(
-        bulletImg,
-        b.x,
-        b.y,
-        b.w,
-        b.h
-      );
+      drawBulletImage(b, 0);
 
     } else {
 

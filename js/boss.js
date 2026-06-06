@@ -5,6 +5,8 @@
 const bossImages = {
   ufo: loadImage("boss.ufo", "images/UFO.png"),
   stand: loadImage("boss.gulu.stand", "images/gulu_balad_stand.png"),
+  attack: loadImage("boss.gulu.attack", "images/gulu_balad_attack.png"),
+  win: loadImage("boss.gulu.win", "images/gulu_balad_win.png"),
   weakExplosion: loadImage(
     "boss.weak.explosion",
     "images/effects/ufo_explosion_sheet.png"
@@ -17,6 +19,7 @@ const BOSS_PARRY_BULLET_INTERVAL = 80;
 const BOSS_PARRY_BULLET_START_DELAY = 45;
 const BOSS_PARRY_BULLET_SPEED = 2.8;
 const BOSS_PARRY_BULLET_MAX = 2;
+const BOSS_ATTACK_IMAGE_FRAMES = 36;
 const BOSS_MAX_LIFE = 5;
 const BOSS_WEAK_EXPLOSION_FRAME_COUNT = 10;
 const BOSS_WEAK_EXPLOSION_FRAME_W = 96;
@@ -53,6 +56,7 @@ const boss = {
   bodyGuardImpactX: 0,
   bodyGuardImpactY: 0,
   bodyGuardSide: 1,
+  attackTimer: 0,
   weakHitTimer: 0,
   life: BOSS_MAX_LIFE,
   floatTimer: 0,
@@ -71,6 +75,7 @@ function resetBoss() {
   boss.bodyGuardImpactX = 0;
   boss.bodyGuardImpactY = 0;
   boss.bodyGuardSide = 1;
+  boss.attackTimer = 0;
   boss.weakHitTimer = 0;
   boss.life = BOSS_MAX_LIFE;
   boss.floatTimer = 0;
@@ -123,17 +128,31 @@ function countBossParryBullets() {
 
 function spawnBossParryBullet() {
 
+  const bulletW = 48;
   const bulletH = 42;
-  const targetY = player.y + player.h / 2 - bulletH / 2;
+  const muzzleX = boss.body.x + 44;
+  const muzzleY = getBossBodyY() + boss.body.h * 0.54;
+  const targetX = player.x + player.w / 2;
+  const targetY = player.y + player.h / 2;
+  const dx = targetX - muzzleX;
+  const dy = targetY - muzzleY;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const vx = dx / distance * BOSS_PARRY_BULLET_SPEED;
+  const vy = dy / distance * BOSS_PARRY_BULLET_SPEED;
 
   bullets.push({
-    x: boss.body.x + 28,
-    y: Math.max(18, Math.min(targetY, canvas.height - bulletH - 18)),
-    w: 48,
+    x: muzzleX - bulletW / 2,
+    y: muzzleY - bulletH / 2,
+    w: bulletW,
     h: bulletH,
+    vx,
+    vy,
+    angle: Math.atan2(vy, vx),
     speed: BOSS_PARRY_BULLET_SPEED,
     bossParry: true
   });
+
+  boss.attackTimer = BOSS_ATTACK_IMAGE_FRAMES;
 }
 
 function updateBossParryBullets() {
@@ -206,6 +225,10 @@ function updateBossEnemy() {
 
   if (boss.bodyGuardTimer > 0) {
     boss.bodyGuardTimer--;
+  }
+
+  if (boss.attackTimer > 0) {
+    boss.attackTimer--;
   }
 
   if (boss.weakHitTimer > 0) {

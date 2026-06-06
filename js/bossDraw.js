@@ -2,6 +2,14 @@
 // Boss Draw
 // ====================
 
+const BOSS_WIN_BODY_DRAW_OFFSET_X = 20;
+const BOSS_WIN_BODY_DRAW_OFFSET_Y = 10;
+const BOSS_WIN_BODY_DRAW_SCALE = 0.8;
+const BOSS_WIN_LAUGH_BOUNCE_Y = 3;
+const BOSS_WIN_LAUGH_STRETCH_X = 0.025;
+const BOSS_WIN_LAUGH_STRETCH_Y = 0.02;
+const BOSS_WIN_LAUGH_BOUNCE_SPEED = 0.36;
+
 function drawBossImage(img, box) {
 
   if (!imageReady(img)) return;
@@ -15,9 +23,26 @@ function drawBossImage(img, box) {
   );
 }
 
+function getBossBodyImage() {
+
+  if (
+    gameState === "boss" &&
+    gameOver &&
+    imageReady(bossImages.win)
+  ) {
+    return bossImages.win;
+  }
+
+  if (boss.attackTimer > 0 && imageReady(bossImages.attack)) {
+    return bossImages.attack;
+  }
+
+  return bossImages.stand;
+}
+
 function drawBossBodyImage(box, guardPower) {
 
-  const img = bossImages.stand;
+  const img = getBossBodyImage();
 
   if (!imageReady(img)) return;
 
@@ -221,7 +246,7 @@ function drawBossWarpEffect(ufoH) {
   );
 
   drawBossImage(
-    bossImages.stand,
+    getBossBodyImage(),
     {
       x: boss.body.x,
       y: fromBodyY,
@@ -312,20 +337,48 @@ function drawBossWeakExplosions() {
 
 function drawBossEnemy() {
 
+  const isBossGameOver =
+    gameState === "boss" &&
+    gameOver;
   const weakDrawBox = getBossWeakDrawBox();
 
   const bodyPulse =
-    boss.bodyGuardTimer > 0
+    boss.bodyGuardTimer > 0 && !isBossGameOver
       ? Math.sin(frame * 0.9) * 4
       : 0;
   const bodyGuardPower =
-    boss.bodyGuardTimer > 0
+    boss.bodyGuardTimer > 0 && !isBossGameOver
       ? Math.sin(
         boss.bodyGuardTimer / BOSS_BODY_GUARD_FRAMES * Math.PI / 2
       )
       : 0;
+  const winAnimFrame =
+    isBossGameOver ? performance.now() / (1000 / 60) : frame;
+  const winLaughBounce =
+    isBossGameOver
+      ? Math.max(0, Math.sin(winAnimFrame * BOSS_WIN_LAUGH_BOUNCE_SPEED))
+      : 0;
+  const bodyDrawOffsetX =
+    isBossGameOver ? BOSS_WIN_BODY_DRAW_OFFSET_X : 0;
+  const bodyDrawOffsetY =
+    isBossGameOver
+      ? BOSS_WIN_BODY_DRAW_OFFSET_Y +
+        winLaughBounce * BOSS_WIN_LAUGH_BOUNCE_Y
+      : 0;
+  const bodyDrawScale =
+    isBossGameOver ? BOSS_WIN_BODY_DRAW_SCALE : 1;
+  const bodyDrawW =
+    boss.body.w *
+    bodyDrawScale *
+    (1 + winLaughBounce * BOSS_WIN_LAUGH_STRETCH_X);
+  const bodyDrawH =
+    boss.body.h *
+    bodyDrawScale *
+    (1 - winLaughBounce * BOSS_WIN_LAUGH_STRETCH_Y);
 
-  drawBossWarpEffect(weakDrawBox.h);
+  if (!isBossGameOver) {
+    drawBossWarpEffect(weakDrawBox.h);
+  }
 
   ctx.save();
 
@@ -349,10 +402,10 @@ function drawBossEnemy() {
 
   drawBossBodyImage(
     {
-      x: -boss.body.w / 2 + bodyPulse,
-      y: -boss.body.h / 2,
-      w: boss.body.w,
-      h: boss.body.h
+      x: -bodyDrawW / 2 + bodyPulse + bodyDrawOffsetX,
+      y: -bodyDrawH / 2 + bodyDrawOffsetY,
+      w: bodyDrawW,
+      h: bodyDrawH
     },
     bodyGuardPower
   );
