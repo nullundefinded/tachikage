@@ -22,6 +22,11 @@ const BOSS_PARRY_BULLET_SPEED = 2.8;
 const BOSS_PARRY_BULLET_MAX = 2;
 const BOSS_ATTACK_IMAGE_FRAMES = 36;
 const BOSS_MAX_LIFE = 5;
+const BOSS_INTRO_UFO_START_OFFSET_Y = -360;
+const BOSS_INTRO_BODY_START_OFFSET_Y = -420;
+const BOSS_INTRO_UFO_DESCEND_FRAMES = 90;
+const BOSS_INTRO_BODY_DESCEND_FRAMES = 56;
+const BOSS_INTRO_READY_FRAMES = 64;
 const BOSS_DEFEAT_FALL_START_SPEED = 1.8;
 const BOSS_DEFEAT_FALL_ACCEL = 0.22;
 const BOSS_DEFEAT_CLEAR_MARGIN = 30;
@@ -74,6 +79,10 @@ const boss = {
   warpTimer: 0,
   warpFromOffsetY: 0,
   warpToOffsetY: 0,
+  introPhase: "none",
+  introTimer: 0,
+  introUfoOffsetY: 0,
+  introBodyOffsetY: 0,
   weakExplosions: [],
   defeatPhase: "none",
   defeatFallY: 0,
@@ -98,6 +107,10 @@ function resetBoss() {
   boss.warpTimer = 0;
   boss.warpFromOffsetY = 0;
   boss.warpToOffsetY = 0;
+  boss.introPhase = "ufoIn";
+  boss.introTimer = 0;
+  boss.introUfoOffsetY = BOSS_INTRO_UFO_START_OFFSET_Y;
+  boss.introBodyOffsetY = BOSS_INTRO_BODY_START_OFFSET_Y;
   boss.weakExplosions = [];
   boss.defeatPhase = "none";
   boss.defeatFallY = 0;
@@ -134,7 +147,7 @@ function getBossWeakDrawBox() {
 
   return {
     x: boss.weak.x,
-    y: getBossWeakY() + boss.defeatUfoY,
+    y: getBossWeakY() + boss.introUfoOffsetY + boss.defeatUfoY,
     w: boss.weak.w,
     h: ufoH
   };
@@ -142,6 +155,68 @@ function getBossWeakDrawBox() {
 
 function countBossParryBullets() {
   return bullets.filter(b => b.bossParry).length;
+}
+
+function easeBossIntro(t) {
+  return 1 - Math.pow(1 - Math.max(0, Math.min(t, 1)), 3);
+}
+
+function isBossIntroActive() {
+  return (
+    boss.introPhase !== "none" &&
+    boss.introPhase !== "done"
+  );
+}
+
+function updateBossIntro() {
+
+  if (boss.introPhase === "done") return;
+
+  boss.introTimer++;
+
+  if (boss.introPhase === "ufoIn") {
+    const t = easeBossIntro(
+      boss.introTimer / BOSS_INTRO_UFO_DESCEND_FRAMES
+    );
+
+    boss.introUfoOffsetY = BOSS_INTRO_UFO_START_OFFSET_Y * (1 - t);
+    boss.introBodyOffsetY = BOSS_INTRO_BODY_START_OFFSET_Y;
+
+    if (boss.introTimer >= BOSS_INTRO_UFO_DESCEND_FRAMES) {
+      boss.introPhase = "bodyIn";
+      boss.introTimer = 0;
+      boss.introUfoOffsetY = 0;
+    }
+
+    return;
+  }
+
+  if (boss.introPhase === "bodyIn") {
+    const t = easeBossIntro(
+      boss.introTimer / BOSS_INTRO_BODY_DESCEND_FRAMES
+    );
+
+    boss.introBodyOffsetY = BOSS_INTRO_BODY_START_OFFSET_Y * (1 - t);
+
+    if (boss.introTimer >= BOSS_INTRO_BODY_DESCEND_FRAMES) {
+      boss.introPhase = "ready";
+      boss.introTimer = 0;
+      boss.introBodyOffsetY = 0;
+    }
+
+    return;
+  }
+
+  if (boss.introPhase === "ready") {
+    boss.introUfoOffsetY = 0;
+    boss.introBodyOffsetY = 0;
+
+    if (boss.introTimer >= BOSS_INTRO_READY_FRAMES) {
+      boss.introPhase = "done";
+      boss.introTimer = 0;
+      boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
+    }
+  }
 }
 
 function isBossDefeated() {
@@ -315,6 +390,11 @@ function updateBossWeakExplosions() {
 function updateBossEnemy() {
 
   updateBossWeakExplosions();
+
+  if (isBossIntroActive()) {
+    updateBossIntro();
+    return;
+  }
 
   if (isBossDefeated()) {
     updateBossDefeat();

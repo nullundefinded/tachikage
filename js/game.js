@@ -241,6 +241,13 @@ function updateBoss() {
     return;
   }
 
+  if (typeof isBossIntroActive === "function" && isBossIntroActive()) {
+    frame++;
+    updateBackground();
+    updateBossEnemy();
+    return;
+  }
+
   updateActionCommon();
   updateBossEnemy();
 }
@@ -386,6 +393,8 @@ function drawBossGame() {
   // エフェクト
   drawEffects();
 
+  drawBossIntroShade();
+
   // ボス
   drawBossEnemy();
 
@@ -403,9 +412,13 @@ function drawBossGame() {
   drawBossHitBoxes();
 
   // UI
-  drawUI();
+  if (!(typeof isBossIntroActive === "function" && isBossIntroActive())) {
+    drawUI();
+  }
 
-  drawBossPlaceholder();
+  if (!(typeof isBossIntroActive === "function" && isBossIntroActive())) {
+    drawBossPlaceholder();
+  }
 
   drawBossClearOverlay();
 }
@@ -465,7 +478,8 @@ function loop() {
       gameState === "playing" ||
       (
         gameState === "boss" &&
-        !(typeof isBossClear === "function" && isBossClear())
+        !(typeof isBossClear === "function" && isBossClear()) &&
+        !(typeof isBossIntroActive === "function" && isBossIntroActive())
       )
     ) {
       drawGameNav();

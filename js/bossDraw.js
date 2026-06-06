@@ -9,6 +9,7 @@ const BOSS_WIN_LAUGH_BOUNCE_Y = 3;
 const BOSS_WIN_LAUGH_STRETCH_X = 0.025;
 const BOSS_WIN_LAUGH_STRETCH_Y = 0.02;
 const BOSS_WIN_LAUGH_BOUNCE_SPEED = 0.36;
+const BOSS_INTRO_SHADE_ALPHA = 0.46;
 
 function drawBossImage(img, box) {
 
@@ -30,11 +31,15 @@ function getBossBodyImage() {
   }
 
   if (
-    gameState === "boss" &&
-    gameOver &&
-    imageReady(bossImages.win)
+    (
+      gameState === "boss" &&
+      gameOver
+    ) ||
+    boss.introPhase === "ready"
   ) {
-    return bossImages.win;
+    if (imageReady(bossImages.win)) {
+      return bossImages.win;
+    }
   }
 
   if (boss.attackTimer > 0 && imageReady(bossImages.attack)) {
@@ -195,6 +200,8 @@ function drawBossBodyGuardEffect(guardPower) {
 
 function drawBossLifeBar() {
 
+  if (isBossIntroActive()) return;
+
   const barW = 180;
   const barH = 10;
   const x = canvas.width - barW - 24;
@@ -221,6 +228,18 @@ function drawBossLifeBar() {
   ctx.strokeStyle = "rgba(255,255,255,0.68)";
   ctx.lineWidth = 1;
   ctx.strokeRect(x, y, barW, barH);
+
+  ctx.restore();
+}
+
+function drawBossIntroShade() {
+
+  if (!isBossIntroActive()) return;
+
+  ctx.save();
+
+  ctx.fillStyle = `rgba(0,0,0,${BOSS_INTRO_SHADE_ALPHA})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.restore();
 }
@@ -344,6 +363,10 @@ function drawBossEnemy() {
   const isBossGameOver =
     gameState === "boss" &&
     gameOver;
+  const isIntroLaugh =
+    boss.introPhase === "ready";
+  const isLaughing =
+    isBossGameOver || isIntroLaugh;
   const isDefeated = isBossDefeated();
   const weakDrawBox = getBossWeakDrawBox();
 
@@ -358,20 +381,20 @@ function drawBossEnemy() {
       )
       : 0;
   const winAnimFrame =
-    isBossGameOver ? performance.now() / (1000 / 60) : frame;
+    isLaughing ? performance.now() / (1000 / 60) : frame;
   const winLaughBounce =
-    isBossGameOver
+    isLaughing
       ? Math.max(0, Math.sin(winAnimFrame * BOSS_WIN_LAUGH_BOUNCE_SPEED))
       : 0;
   const bodyDrawOffsetX =
-    isBossGameOver ? BOSS_WIN_BODY_DRAW_OFFSET_X : 0;
+    isLaughing ? BOSS_WIN_BODY_DRAW_OFFSET_X : 0;
   const bodyDrawOffsetY =
-    isBossGameOver
+    isLaughing
       ? BOSS_WIN_BODY_DRAW_OFFSET_Y +
         winLaughBounce * BOSS_WIN_LAUGH_BOUNCE_Y
       : 0;
   const bodyDrawScale =
-    isBossGameOver ? BOSS_WIN_BODY_DRAW_SCALE : 1;
+    isLaughing ? BOSS_WIN_BODY_DRAW_SCALE : 1;
   const bodyDrawW =
     boss.body.w *
     bodyDrawScale *
@@ -404,6 +427,7 @@ function drawBossEnemy() {
     boss.body.x + boss.body.w / 2,
     getBossBodyY() +
       boss.body.h / 2 +
+      boss.introBodyOffsetY +
       boss.defeatUfoY +
       boss.defeatFallY
   );
@@ -445,7 +469,7 @@ function drawBossClearOverlay() {
   ctx.fillStyle = "rgba(210,245,255,0.82)";
   ctx.font = "22px sans-serif";
   ctx.fillText(
-    "GULU BALAD DEFEATED",
+    "PAIN IS OVER",
     canvas.width / 2,
     266
   );
@@ -456,6 +480,7 @@ function drawBossClearOverlay() {
 function drawBossHitBoxes() {
 
   if (!showHitBoxes) return;
+  if (isBossIntroActive()) return;
   if (isBossDefeated()) return;
 
   drawHitBox(
