@@ -358,6 +358,41 @@ function drawBossWeakExplosions() {
   ctx.restore();
 }
 
+function drawBossRaikanBullets() {
+
+  if (boss.raikanBullets.length <= 0) return;
+
+  boss.raikanBullets.forEach(raikan => {
+
+    ctx.save();
+    ctx.translate(
+      raikan.x + raikan.w / 2,
+      raikan.y + raikan.h / 2
+    );
+    ctx.rotate(raikan.rotation);
+
+    if (imageReady(bossImages.raikan)) {
+      ctx.drawImage(
+        bossImages.raikan,
+        -raikan.w / 2,
+        -raikan.h / 2,
+        raikan.w,
+        raikan.h
+      );
+    } else {
+      ctx.fillStyle = "#f7d94a";
+      ctx.fillRect(
+        -raikan.w / 2,
+        -raikan.h / 2,
+        raikan.w,
+        raikan.h
+      );
+    }
+
+    ctx.restore();
+  });
+}
+
 function drawBossEnemy() {
 
   const isBossGameOver =
@@ -498,4 +533,14 @@ function drawBossHitBoxes() {
       stroke: "rgba(255,230,80,0.9)"
     }
   );
+
+  boss.raikanBullets.forEach(raikan => {
+    drawHitBox(
+      getBossRaikanHitBox(raikan),
+      {
+        fill: "rgba(255,40,40,0.16)",
+        stroke: "rgba(255,40,40,0.9)"
+      }
+    );
+  });
 }

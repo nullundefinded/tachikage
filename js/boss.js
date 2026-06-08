@@ -8,6 +8,7 @@ const bossImages = {
   attack: loadImage("boss.gulu.attack", "images/gulu_balad_attack.png"),
   win: loadImage("boss.gulu.win", "images/gulu_balad_win.png"),
   lose: loadImage("boss.gulu.lose", "images/gulu_balad_lose.png"),
+  raikan: loadImage("boss.raikan", "images/raikan.png"),
   weakExplosion: loadImage(
     "boss.weak.explosion",
     "images/effects/ufo_explosion_sheet.png"
@@ -25,6 +26,13 @@ const BOSS_WAVE_ATTACK_CHANCE = 0.5;
 const BOSS_WAVE_ATTACK_COUNT = 3;
 const BOSS_WAVE_ATTACK_BULLET_COUNT = 3;
 const BOSS_WAVE_ATTACK_DELAY = 28;
+const BOSS_RAIKAN_TEST_ATTACK = true;
+const BOSS_RAIKAN_BULLET_SPEED = 5.4;
+const BOSS_RAIKAN_BULLET_W = 42;
+const BOSS_RAIKAN_BULLET_H = 112;
+const BOSS_RAIKAN_HIT_W = 28;
+const BOSS_RAIKAN_HIT_H = 78;
+const BOSS_RAIKAN_ROTATION_SPEED = 0.2;
 const BOSS_ATTACK_IMAGE_FRAMES = 36;
 const BOSS_MAX_LIFE = 5;
 const BOSS_INTRO_UFO_START_OFFSET_Y = -360;
@@ -96,6 +104,7 @@ const boss = {
   defeatExplosionTimer: 0,
   waveAttackTimer: 0,
   waveAttackRemaining: 0,
+  raikanBullets: [],
   parryBulletTimer: BOSS_PARRY_BULLET_START_DELAY
 };
 
@@ -126,6 +135,7 @@ function resetBoss() {
   boss.defeatExplosionTimer = 0;
   boss.waveAttackTimer = 0;
   boss.waveAttackRemaining = 0;
+  boss.raikanBullets = [];
   boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
 }
 
@@ -247,6 +257,7 @@ function startBossDefeat() {
   boss.warpTimer = 0;
   boss.waveAttackTimer = 0;
   boss.waveAttackRemaining = 0;
+  boss.raikanBullets = [];
   bullets = bullets.filter(b => !b.bossParry);
 }
 
@@ -346,6 +357,79 @@ function updateBossWaveAttack() {
   return true;
 }
 
+function spawnBossRaikanBullet() {
+
+  const muzzleX = boss.body.x + 44;
+  const muzzleY = getBossBodyY() + boss.body.h * 0.54;
+  const targetX = -BOSS_RAIKAN_BULLET_W;
+  const targetY = Math.max(
+    BOSS_RAIKAN_BULLET_H / 2,
+    Math.min(
+      player.y + player.h / 2 + (Math.random() - 0.5) * 160,
+      canvas.height - BOSS_RAIKAN_BULLET_H / 2
+    )
+  );
+  const angle = Math.atan2(
+    targetY - muzzleY,
+    targetX - muzzleX
+  );
+
+  boss.raikanBullets.push({
+    x: muzzleX - BOSS_RAIKAN_BULLET_W / 2,
+    y: muzzleY - BOSS_RAIKAN_BULLET_H / 2,
+    w: BOSS_RAIKAN_BULLET_W,
+    h: BOSS_RAIKAN_BULLET_H,
+    vx: Math.cos(angle) * BOSS_RAIKAN_BULLET_SPEED,
+    vy: Math.sin(angle) * BOSS_RAIKAN_BULLET_SPEED,
+    rotation: angle + Math.PI / 2,
+    rotationSpeed: BOSS_RAIKAN_ROTATION_SPEED
+  });
+
+  boss.attackTimer = BOSS_ATTACK_IMAGE_FRAMES;
+}
+
+function updateBossRaikanBullets() {
+
+  boss.raikanBullets.forEach(raikan => {
+    raikan.x += raikan.vx;
+    raikan.y += raikan.vy;
+    raikan.rotation += raikan.rotationSpeed;
+  });
+
+  boss.raikanBullets = boss.raikanBullets.filter(
+    raikan => {
+      const margin = Math.max(raikan.w, raikan.h) * 2;
+
+      return (
+        raikan.x + raikan.w > -margin &&
+        raikan.x < canvas.width + margin &&
+        raikan.y + raikan.h > -margin &&
+        raikan.y < canvas.height + margin
+      );
+    }
+  );
+
+  for (let i = boss.raikanBullets.length - 1; i >= 0; i--) {
+    const raikan = boss.raikanBullets[i];
+
+    if (!hit(getPlayerHitBox(), getBossRaikanHitBox(raikan))) continue;
+
+    boss.raikanBullets.splice(i, 1);
+    resetBulletClearCombo();
+    player.damage = 3;
+    gameOver = true;
+  }
+}
+
+function getBossRaikanHitBox(raikan) {
+  return {
+    x: raikan.x + (raikan.w - BOSS_RAIKAN_HIT_W) / 2,
+    y: raikan.y + (raikan.h - BOSS_RAIKAN_HIT_H) / 2,
+    w: BOSS_RAIKAN_HIT_W,
+    h: BOSS_RAIKAN_HIT_H
+  };
+}
+
 function updateBossParryBullets() {
 
   if (updateBossWaveAttack()) return;
@@ -355,7 +439,9 @@ function updateBossParryBullets() {
     return;
   }
 
-  if (Math.random() < BOSS_WAVE_ATTACK_CHANCE) {
+  if (BOSS_RAIKAN_TEST_ATTACK) {
+    spawnBossRaikanBullet();
+  } else if (Math.random() < BOSS_WAVE_ATTACK_CHANCE) {
     startBossWaveAttack();
   } else {
     spawnBossParryBullet();
@@ -430,6 +516,7 @@ function updateBossWeakExplosions() {
 function updateBossEnemy() {
 
   updateBossWeakExplosions();
+  updateBossRaikanBullets();
 
   if (isBossIntroActive()) {
     updateBossIntro();

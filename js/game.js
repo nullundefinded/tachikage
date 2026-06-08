@@ -403,6 +403,7 @@ function drawBossGame() {
 
   // 弾
   drawBullets();
+  drawBossRaikanBullets();
 
   // 超電磁杭
   drawStake();
