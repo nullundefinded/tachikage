@@ -464,12 +464,44 @@ function draw() {
 // メインループ
 // ====================
 
-function loop() {
+const FIXED_UPDATE_FPS = 60;
+const FIXED_UPDATE_STEP_MS = 1000 / FIXED_UPDATE_FPS;
+const MAX_ACCUMULATED_FRAME_MS = 250;
+const MAX_FIXED_UPDATES_PER_FRAME = 5;
+
+let lastLoopTime = 0;
+let updateAccumulator = 0;
+
+function loop(timestamp = performance.now()) {
 
   perfBeginFrame();
 
   perfMeasureUpdate(() => {
-    update();
+    if (lastLoopTime <= 0) {
+      lastLoopTime = timestamp;
+    }
+
+    const elapsed = Math.min(
+      timestamp - lastLoopTime,
+      MAX_ACCUMULATED_FRAME_MS
+    );
+    lastLoopTime = timestamp;
+    updateAccumulator += elapsed;
+
+    let updateCount = 0;
+
+    while (
+      updateAccumulator >= FIXED_UPDATE_STEP_MS &&
+      updateCount < MAX_FIXED_UPDATES_PER_FRAME
+    ) {
+      update();
+      updateAccumulator -= FIXED_UPDATE_STEP_MS;
+      updateCount++;
+    }
+
+    if (updateCount >= MAX_FIXED_UPDATES_PER_FRAME) {
+      updateAccumulator = 0;
+    }
   });
 
   perfMeasureDraw(() => {
