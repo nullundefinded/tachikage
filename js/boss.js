@@ -21,6 +21,10 @@ const BOSS_PARRY_BULLET_START_DELAY = 45;
 const BOSS_PARRY_BULLET_SPEED = 6;
 const BOSS_PARRY_BULLET_COUNT = 9;
 const BOSS_PARRY_BULLET_SPREAD_ANGLE = Math.PI / 3;
+const BOSS_WAVE_ATTACK_CHANCE = 0.5;
+const BOSS_WAVE_ATTACK_COUNT = 3;
+const BOSS_WAVE_ATTACK_BULLET_COUNT = 3;
+const BOSS_WAVE_ATTACK_DELAY = 28;
 const BOSS_ATTACK_IMAGE_FRAMES = 36;
 const BOSS_MAX_LIFE = 5;
 const BOSS_INTRO_UFO_START_OFFSET_Y = -360;
@@ -90,6 +94,8 @@ const boss = {
   defeatFallSpeed: 0,
   defeatUfoY: 0,
   defeatExplosionTimer: 0,
+  waveAttackTimer: 0,
+  waveAttackRemaining: 0,
   parryBulletTimer: BOSS_PARRY_BULLET_START_DELAY
 };
 
@@ -118,6 +124,8 @@ function resetBoss() {
   boss.defeatFallSpeed = 0;
   boss.defeatUfoY = 0;
   boss.defeatExplosionTimer = 0;
+  boss.waveAttackTimer = 0;
+  boss.waveAttackRemaining = 0;
   boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
 }
 
@@ -237,6 +245,8 @@ function startBossDefeat() {
   boss.bodyGuardTimer = 0;
   boss.weakHitTimer = 0;
   boss.warpTimer = 0;
+  boss.waveAttackTimer = 0;
+  boss.waveAttackRemaining = 0;
   bullets = bullets.filter(b => !b.bossParry);
 }
 
@@ -278,7 +288,7 @@ function updateBossDefeat() {
   }
 }
 
-function spawnBossParryBullet() {
+function spawnBossParryBullet(bulletCount = BOSS_PARRY_BULLET_COUNT) {
 
   const bulletW = 48;
   const bulletH = 42;
@@ -290,12 +300,12 @@ function spawnBossParryBullet() {
   const dy = targetY - muzzleY;
   const baseAngle = Math.atan2(dy, dx);
   const spreadStep =
-    BOSS_PARRY_BULLET_COUNT > 1
-      ? BOSS_PARRY_BULLET_SPREAD_ANGLE / (BOSS_PARRY_BULLET_COUNT - 1)
+    bulletCount > 1
+      ? BOSS_PARRY_BULLET_SPREAD_ANGLE / (bulletCount - 1)
       : 0;
   const startAngle = baseAngle - BOSS_PARRY_BULLET_SPREAD_ANGLE / 2;
 
-  for (let i = 0; i < BOSS_PARRY_BULLET_COUNT; i++) {
+  for (let i = 0; i < bulletCount; i++) {
     const angle = startAngle + spreadStep * i;
     const vx = Math.cos(angle) * BOSS_PARRY_BULLET_SPEED;
     const vy = Math.sin(angle) * BOSS_PARRY_BULLET_SPEED;
@@ -316,14 +326,41 @@ function spawnBossParryBullet() {
   boss.attackTimer = BOSS_ATTACK_IMAGE_FRAMES;
 }
 
+function startBossWaveAttack() {
+  spawnBossParryBullet(BOSS_WAVE_ATTACK_BULLET_COUNT);
+  boss.waveAttackTimer = BOSS_WAVE_ATTACK_DELAY;
+  boss.waveAttackRemaining = BOSS_WAVE_ATTACK_COUNT - 1;
+}
+
+function updateBossWaveAttack() {
+  if (boss.waveAttackRemaining <= 0) return false;
+
+  if (boss.waveAttackTimer > 0) {
+    boss.waveAttackTimer--;
+    return true;
+  }
+
+  spawnBossParryBullet(BOSS_WAVE_ATTACK_BULLET_COUNT);
+  boss.waveAttackRemaining--;
+  boss.waveAttackTimer = BOSS_WAVE_ATTACK_DELAY;
+  return true;
+}
+
 function updateBossParryBullets() {
+
+  if (updateBossWaveAttack()) return;
 
   if (boss.parryBulletTimer > 0) {
     boss.parryBulletTimer--;
     return;
   }
 
-  spawnBossParryBullet();
+  if (Math.random() < BOSS_WAVE_ATTACK_CHANCE) {
+    startBossWaveAttack();
+  } else {
+    spawnBossParryBullet();
+  }
+
   boss.parryBulletTimer = BOSS_PARRY_BULLET_INTERVAL;
 }
 
