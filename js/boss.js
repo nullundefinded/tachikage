@@ -18,8 +18,9 @@ const BOSS_BODY_GUARD_FRAMES = 18;
 const BOSS_WEAK_HIT_FRAMES = 60;
 const BOSS_PARRY_BULLET_INTERVAL = 80;
 const BOSS_PARRY_BULLET_START_DELAY = 45;
-const BOSS_PARRY_BULLET_SPEED = 2.8;
-const BOSS_PARRY_BULLET_MAX = 2;
+const BOSS_PARRY_BULLET_SPEED = 6;
+const BOSS_PARRY_BULLET_COUNT = 9;
+const BOSS_PARRY_BULLET_SPREAD_ANGLE = Math.PI / 3;
 const BOSS_ATTACK_IMAGE_FRAMES = 36;
 const BOSS_MAX_LIFE = 5;
 const BOSS_INTRO_UFO_START_OFFSET_Y = -360;
@@ -151,10 +152,6 @@ function getBossWeakDrawBox() {
     w: boss.weak.w,
     h: ufoH
   };
-}
-
-function countBossParryBullets() {
-  return bullets.filter(b => b.bossParry).length;
 }
 
 function easeBossIntro(t) {
@@ -291,21 +288,30 @@ function spawnBossParryBullet() {
   const targetY = player.y + player.h / 2;
   const dx = targetX - muzzleX;
   const dy = targetY - muzzleY;
-  const distance = Math.max(1, Math.hypot(dx, dy));
-  const vx = dx / distance * BOSS_PARRY_BULLET_SPEED;
-  const vy = dy / distance * BOSS_PARRY_BULLET_SPEED;
+  const baseAngle = Math.atan2(dy, dx);
+  const spreadStep =
+    BOSS_PARRY_BULLET_COUNT > 1
+      ? BOSS_PARRY_BULLET_SPREAD_ANGLE / (BOSS_PARRY_BULLET_COUNT - 1)
+      : 0;
+  const startAngle = baseAngle - BOSS_PARRY_BULLET_SPREAD_ANGLE / 2;
 
-  bullets.push({
-    x: muzzleX - bulletW / 2,
-    y: muzzleY - bulletH / 2,
-    w: bulletW,
-    h: bulletH,
-    vx,
-    vy,
-    angle: Math.atan2(vy, vx),
-    speed: BOSS_PARRY_BULLET_SPEED,
-    bossParry: true
-  });
+  for (let i = 0; i < BOSS_PARRY_BULLET_COUNT; i++) {
+    const angle = startAngle + spreadStep * i;
+    const vx = Math.cos(angle) * BOSS_PARRY_BULLET_SPEED;
+    const vy = Math.sin(angle) * BOSS_PARRY_BULLET_SPEED;
+
+    bullets.push({
+      x: muzzleX - bulletW / 2,
+      y: muzzleY - bulletH / 2,
+      w: bulletW,
+      h: bulletH,
+      vx,
+      vy,
+      angle,
+      speed: BOSS_PARRY_BULLET_SPEED,
+      bossParry: true
+    });
+  }
 
   boss.attackTimer = BOSS_ATTACK_IMAGE_FRAMES;
 }
@@ -317,10 +323,7 @@ function updateBossParryBullets() {
     return;
   }
 
-  if (countBossParryBullets() < BOSS_PARRY_BULLET_MAX) {
-    spawnBossParryBullet();
-  }
-
+  spawnBossParryBullet();
   boss.parryBulletTimer = BOSS_PARRY_BULLET_INTERVAL;
 }
 
