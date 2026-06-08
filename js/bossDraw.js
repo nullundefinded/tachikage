@@ -35,7 +35,8 @@ function getBossBodyImage() {
       gameState === "boss" &&
       gameOver
     ) ||
-    boss.introPhase === "ready"
+    boss.introPhase === "ready" ||
+    boss.hiddenRaikanLaughTimer > 0
   ) {
     if (imageReady(bossImages.win)) {
       return bossImages.win;
@@ -400,8 +401,10 @@ function drawBossEnemy() {
     gameOver;
   const isIntroLaugh =
     boss.introPhase === "ready";
+  const isHiddenRaikanLaugh =
+    boss.hiddenRaikanLaughTimer > 0;
   const isLaughing =
-    isBossGameOver || isIntroLaugh;
+    isBossGameOver || isIntroLaugh || isHiddenRaikanLaugh;
   const isDefeated = isBossDefeated();
   const weakDrawBox = getBossWeakDrawBox();
 
