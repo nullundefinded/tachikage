@@ -208,7 +208,204 @@ function getBossRaikanHitBox(raikan) {
   };
 }
 
+function startBossChargeAttack() {
+  boss.chargePhase = "bodyCharge";
+  boss.chargeTimer = 0;
+  boss.chargeX = boss.body.x;
+  boss.chargeTargetOffsetY = getBossChargeTargetOffsetY();
+  boss.chargeBodyOffsetX = 0;
+  boss.chargeBodyOffsetY = 0;
+  setBossChargeVelocity();
+  boss.chargeUfoOffsetY = 0;
+}
+
+function getBossChargeTargetOffsetY() {
+  const targetCenterY = player.y + player.h / 2;
+  const targetOffsetY =
+    targetCenterY -
+    boss.body.y -
+    boss.body.h / 2;
+  const minOffsetY =
+    BOSS_CHARGE_TARGET_MARGIN_Y - boss.body.y;
+  const maxOffsetY =
+    canvas.height -
+    BOSS_CHARGE_TARGET_MARGIN_Y -
+    boss.body.y -
+    boss.body.h;
+
+  return Math.max(
+    minOffsetY,
+    Math.min(targetOffsetY, maxOffsetY)
+  );
+}
+
+function setBossChargeVelocity() {
+  const targetOffsetX =
+    -BOSS_CHARGE_BODY_RIGHT_MARGIN -
+    boss.body.w -
+    boss.body.x;
+  const targetOffsetY =
+    boss.chargeTargetOffsetY -
+    boss.floatOffsetY;
+  const distance = Math.max(
+    1,
+    Math.hypot(targetOffsetX, targetOffsetY)
+  );
+
+  boss.chargeBodyVx =
+    targetOffsetX / distance * BOSS_CHARGE_BODY_SPEED;
+  boss.chargeBodyVy =
+    targetOffsetY / distance * BOSS_CHARGE_BODY_SPEED;
+}
+
+function updateBossChargeUfoRetreat() {
+  const targetOffsetY = canvas.height + 40 - getBossWeakY();
+
+  boss.chargeUfoOffsetY = Math.min(
+    targetOffsetY,
+    boss.chargeUfoOffsetY + BOSS_CHARGE_UFO_RETREAT_SPEED
+  );
+}
+
+function moveBossChargeOffsetTowardZero() {
+  const distance = Math.hypot(
+    boss.chargeBodyOffsetX,
+    boss.chargeBodyOffsetY
+  );
+
+  if (distance <= BOSS_CHARGE_BODY_RETURN_SPEED) {
+    boss.chargeBodyOffsetX = 0;
+    boss.chargeBodyOffsetY = 0;
+    return;
+  }
+
+  boss.chargeBodyOffsetX -=
+    boss.chargeBodyOffsetX / distance * BOSS_CHARGE_BODY_RETURN_SPEED;
+  boss.chargeBodyOffsetY -=
+    boss.chargeBodyOffsetY / distance * BOSS_CHARGE_BODY_RETURN_SPEED;
+}
+
+function updateBossChargeAttack() {
+  if (boss.chargePhase === "none") return false;
+
+  if (boss.chargePhase === "bodyCharge") {
+    updateBossChargeUfoRetreat();
+    boss.chargeBodyOffsetX += boss.chargeBodyVx;
+    boss.chargeBodyOffsetY += boss.chargeBodyVy;
+    updateBossChargeHit();
+
+    if (
+      boss.body.x +
+      boss.chargeBodyOffsetX +
+      boss.body.w < -BOSS_CHARGE_BODY_RIGHT_MARGIN
+    ) {
+      boss.chargePhase = "bodyReturn";
+      boss.chargeBodyOffsetX =
+        canvas.width +
+        BOSS_CHARGE_BODY_RIGHT_MARGIN -
+        boss.body.x;
+    }
+
+    return true;
+  }
+
+  if (boss.chargePhase === "bodyReturn") {
+    moveBossChargeOffsetTowardZero();
+
+    if (
+      boss.chargeBodyOffsetX === 0 &&
+      boss.chargeBodyOffsetY === 0
+    ) {
+      boss.chargePhase = "none";
+      boss.chargeTimer = 0;
+      boss.chargeX = 0;
+      boss.chargeTargetOffsetY = 0;
+      boss.chargeBodyOffsetX = 0;
+      boss.chargeBodyOffsetY = 0;
+      boss.chargeBodyVx = 0;
+      boss.chargeBodyVy = 0;
+      boss.chargeUfoOffsetY = 0;
+    }
+
+    return true;
+  }
+
+  if (boss.chargePhase === "ufoHold") {
+    boss.chargeTimer--;
+
+    if (boss.chargeTimer <= 0) {
+      boss.chargePhase = "ufoReturn";
+    }
+
+    return true;
+  }
+
+  if (boss.chargePhase === "ufoReturn") {
+    boss.chargeUfoOffsetY = Math.max(
+      0,
+      boss.chargeUfoOffsetY - BOSS_CHARGE_UFO_RETURN_SPEED
+    );
+
+    if (boss.chargeUfoOffsetY <= 0) {
+      boss.chargePhase = "none";
+      boss.chargeTimer = 0;
+      boss.chargeX = 0;
+      boss.chargeTargetOffsetY = 0;
+      boss.chargeBodyOffsetX = 0;
+      boss.chargeBodyOffsetY = 0;
+      boss.chargeBodyVx = 0;
+      boss.chargeBodyVy = 0;
+    }
+
+    return true;
+  }
+
+  boss.chargePhase = "none";
+  boss.chargeTimer = 0;
+  boss.chargeTargetOffsetY = 0;
+  boss.chargeBodyOffsetX = 0;
+  boss.chargeBodyOffsetY = 0;
+  boss.chargeBodyVx = 0;
+  boss.chargeBodyVy = 0;
+  boss.chargeUfoOffsetY = 0;
+  return false;
+}
+
+function isBossChargeBodyActive() {
+  return boss.chargePhase === "bodyCharge";
+}
+
+function getBossChargeHitBox() {
+  return {
+    x:
+      boss.body.x +
+      boss.chargeBodyOffsetX +
+      BOSS_CHARGE_HIT_OFFSET_X,
+    y:
+      getBossBodyY() +
+      boss.chargeBodyOffsetY +
+      BOSS_CHARGE_HIT_OFFSET_Y,
+    w: BOSS_CHARGE_HIT_W,
+    h: BOSS_CHARGE_HIT_H
+  };
+}
+
+function updateBossChargeHit() {
+  if (player.invincible > 0) return;
+  if (!hit(getPlayerHitBox(), getBossChargeHitBox())) return;
+
+  resetBulletClearCombo();
+  player.damage++;
+  player.invincible = 60;
+
+  if (player.damage >= 3) {
+    gameOver = true;
+  }
+}
+
 function updateBossParryBullets() {
+
+  if (updateBossChargeAttack()) return;
 
   if (updateBossWaveAttack()) return;
 
@@ -217,12 +414,18 @@ function updateBossParryBullets() {
     return;
   }
 
-  if (Math.random() < BOSS_HIDDEN_RAIKAN_ATTACK_CHANCE) {
-    startBossHiddenRaikanLaugh();
-  } else if (Math.random() < BOSS_WAVE_ATTACK_CHANCE) {
-    startBossWaveAttack();
-  } else {
+  const attackPattern = Math.floor(
+    Math.random() * BOSS_ATTACK_PATTERN_COUNT
+  );
+
+  if (attackPattern === 0) {
     spawnBossParryBullet();
+  } else if (attackPattern === 1) {
+    startBossWaveAttack();
+  } else if (attackPattern === 2) {
+    startBossHiddenRaikanLaugh();
+  } else {
+    startBossChargeAttack();
   }
 
   boss.parryBulletTimer = BOSS_PARRY_BULLET_INTERVAL;

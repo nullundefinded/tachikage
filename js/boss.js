@@ -6,6 +6,7 @@ const bossImages = {
   ufo: loadImage("boss.ufo", "images/UFO.png"),
   stand: loadImage("boss.gulu.stand", "images/gulu_balad_stand.png"),
   attack: loadImage("boss.gulu.attack", "images/gulu_balad_attack.png"),
+  charge: loadImage("boss.gulu.charge", "images/gulu_balad_attack_2.png"),
   win: loadImage("boss.gulu.win", "images/gulu_balad_win.png"),
   lose: loadImage("boss.gulu.lose", "images/gulu_balad_lose.png"),
   raikan: loadImage("boss.raikan", "images/raikan.png"),
@@ -22,12 +23,23 @@ const BOSS_PARRY_BULLET_START_DELAY = 45;
 const BOSS_PARRY_BULLET_SPEED = 6;
 const BOSS_PARRY_BULLET_COUNT = 9;
 const BOSS_PARRY_BULLET_SPREAD_ANGLE = Math.PI / 3;
-const BOSS_WAVE_ATTACK_CHANCE = 0.5;
+const BOSS_ATTACK_PATTERN_COUNT = 4;
 const BOSS_WAVE_ATTACK_COUNT = 3;
 const BOSS_WAVE_ATTACK_BULLET_COUNT = 3;
 const BOSS_WAVE_ATTACK_DELAY = 28;
-const BOSS_HIDDEN_RAIKAN_ATTACK_CHANCE = 0.25;
 const BOSS_HIDDEN_RAIKAN_LAUGH_FRAMES = 30;
+const BOSS_CHARGE_UFO_RETREAT_SPEED = 8;
+const BOSS_CHARGE_UFO_RETURN_SPEED = 6;
+const BOSS_CHARGE_UFO_HOLD_FRAMES = 30;
+const BOSS_CHARGE_BODY_SPEED = 14;
+const BOSS_CHARGE_BODY_RETURN_SPEED = 10;
+const BOSS_CHARGE_BODY_RIGHT_MARGIN = 60;
+const BOSS_CHARGE_BODY_DRAW_SCALE = 1.15;
+const BOSS_CHARGE_TARGET_MARGIN_Y = 18;
+const BOSS_CHARGE_HIT_OFFSET_X = -50;
+const BOSS_CHARGE_HIT_OFFSET_Y = 58;
+const BOSS_CHARGE_HIT_W = 235;
+const BOSS_CHARGE_HIT_H = 112;
 const BOSS_RAIKAN_BULLET_SPEED = 5.4;
 const BOSS_RAIKAN_BULLET_W = 42;
 const BOSS_RAIKAN_BULLET_H = 112;
@@ -108,6 +120,15 @@ const boss = {
   waveAttackShot: 0,
   waveAttackRaikanShot: 0,
   hiddenRaikanLaughTimer: 0,
+  chargePhase: "none",
+  chargeTimer: 0,
+  chargeX: 0,
+  chargeTargetOffsetY: 0,
+  chargeBodyOffsetX: 0,
+  chargeBodyOffsetY: 0,
+  chargeBodyVx: 0,
+  chargeBodyVy: 0,
+  chargeUfoOffsetY: 0,
   raikanBullets: [],
   parryBulletTimer: BOSS_PARRY_BULLET_START_DELAY
 };
@@ -142,6 +163,15 @@ function resetBoss() {
   boss.waveAttackShot = 0;
   boss.waveAttackRaikanShot = 0;
   boss.hiddenRaikanLaughTimer = 0;
+  boss.chargePhase = "none";
+  boss.chargeTimer = 0;
+  boss.chargeX = 0;
+  boss.chargeTargetOffsetY = 0;
+  boss.chargeBodyOffsetX = 0;
+  boss.chargeBodyOffsetY = 0;
+  boss.chargeBodyVx = 0;
+  boss.chargeBodyVy = 0;
+  boss.chargeUfoOffsetY = 0;
   boss.raikanBullets = [];
   boss.parryBulletTimer = BOSS_PARRY_BULLET_START_DELAY;
 }
@@ -157,8 +187,22 @@ function getBossBodyBox() {
 
 function getBossWeakBox() {
   return {
-    x: boss.weak.x + boss.weak.hitBox.offsetX,
-    y: getBossWeakY() + boss.weak.hitBox.offsetY,
+    x:
+      boss.weak.x +
+      (
+        boss.chargePhase === "bodyReturn"
+          ? boss.chargeBodyOffsetX
+          : 0
+      ) +
+      boss.weak.hitBox.offsetX,
+    y:
+      getBossWeakY() +
+      (
+        boss.chargePhase === "bodyReturn"
+          ? boss.chargeBodyOffsetY
+          : boss.chargeUfoOffsetY
+      ) +
+      boss.weak.hitBox.offsetY,
     w: boss.weak.hitBox.w,
     h: boss.weak.hitBox.h
   };
@@ -172,8 +216,22 @@ function getBossWeakDrawBox() {
       : 114;
 
   return {
-    x: boss.weak.x,
-    y: getBossWeakY() + boss.introUfoOffsetY + boss.defeatUfoY,
+    x:
+      boss.weak.x +
+      (
+        boss.chargePhase === "bodyReturn"
+          ? boss.chargeBodyOffsetX
+          : 0
+      ),
+    y:
+      getBossWeakY() +
+      boss.introUfoOffsetY +
+      boss.defeatUfoY +
+      (
+        boss.chargePhase === "bodyReturn"
+          ? boss.chargeBodyOffsetY
+          : boss.chargeUfoOffsetY
+      ),
     w: boss.weak.w,
     h: ufoH
   };
@@ -267,6 +325,15 @@ function startBossDefeat() {
   boss.waveAttackShot = 0;
   boss.waveAttackRaikanShot = 0;
   boss.hiddenRaikanLaughTimer = 0;
+  boss.chargePhase = "none";
+  boss.chargeTimer = 0;
+  boss.chargeX = 0;
+  boss.chargeTargetOffsetY = 0;
+  boss.chargeBodyOffsetX = 0;
+  boss.chargeBodyOffsetY = 0;
+  boss.chargeBodyVx = 0;
+  boss.chargeBodyVy = 0;
+  boss.chargeUfoOffsetY = 0;
   boss.raikanBullets = [];
   bullets = bullets.filter(b => !b.bossParry);
 }
@@ -387,7 +454,10 @@ function updateBossEnemy() {
     return;
   }
 
-  updateBossMovement();
+  if (boss.chargePhase === "none") {
+    updateBossMovement();
+  }
+
   updateBossParryBullets();
 
   if (boss.bodyGuardTimer > 0) {

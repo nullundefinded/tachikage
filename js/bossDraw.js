@@ -43,6 +43,13 @@ function getBossBodyImage() {
     }
   }
 
+  if (
+    boss.chargePhase === "bodyCharge" &&
+    imageReady(bossImages.charge)
+  ) {
+    return bossImages.charge;
+  }
+
   if (boss.attackTimer > 0 && imageReady(bossImages.attack)) {
     return bossImages.attack;
   }
@@ -432,7 +439,13 @@ function drawBossEnemy() {
         winLaughBounce * BOSS_WIN_LAUGH_BOUNCE_Y
       : 0;
   const bodyDrawScale =
-    isLaughing ? BOSS_WIN_BODY_DRAW_SCALE : 1;
+    isLaughing
+      ? BOSS_WIN_BODY_DRAW_SCALE
+      : (
+        boss.chargePhase === "bodyCharge"
+      )
+        ? BOSS_CHARGE_BODY_DRAW_SCALE
+        : 1;
   const bodyDrawW =
     boss.body.w *
     bodyDrawScale *
@@ -467,12 +480,17 @@ function drawBossEnemy() {
       boss.body.h / 2 +
       boss.introBodyOffsetY +
       boss.defeatUfoY +
-      boss.defeatFallY
+      boss.defeatFallY +
+      boss.chargeBodyOffsetY
   );
 
   drawBossBodyImage(
     {
-      x: -bodyDrawW / 2 + bodyPulse + bodyDrawOffsetX,
+      x:
+        -bodyDrawW / 2 +
+        bodyPulse +
+        bodyDrawOffsetX +
+        boss.chargeBodyOffsetX,
       y: -bodyDrawH / 2 + bodyDrawOffsetY,
       w: bodyDrawW,
       h: bodyDrawH
@@ -536,6 +554,16 @@ function drawBossHitBoxes() {
       stroke: "rgba(255,230,80,0.9)"
     }
   );
+
+  if (isBossChargeBodyActive()) {
+    drawHitBox(
+      getBossChargeHitBox(),
+      {
+        fill: "rgba(255,70,40,0.14)",
+        stroke: "rgba(255,70,40,0.9)"
+      }
+    );
+  }
 
   boss.raikanBullets.forEach(raikan => {
     drawHitBox(
