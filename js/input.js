@@ -69,6 +69,10 @@ function handleTitleKey(e) {
     enterPlaying();
   }
 
+  if (selectedMenu === "BOSS MODE") {
+    enterBoss();
+  }
+
   if (selectedMenu === "STORY") {
     enterStory();
   }

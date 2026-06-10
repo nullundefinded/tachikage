@@ -53,6 +53,7 @@ let showHitBoxes = false;
 
 const TITLE_MENU_ITEMS = [
   "START",
+  "BOSS MODE",
   "STORY",
   "TUTORIAL",
   "CONFIG",

@@ -119,11 +119,11 @@ function drawTitle() {
     174
   );
 
-  ctx.font = "24px sans-serif";
+  ctx.font = "23px sans-serif";
 
   TITLE_MENU_ITEMS.forEach((item, i) => {
 
-    const y = 245 + i * 42;
+    const y = 235 + i * 36;
     const selected = i === titleMenuIndex;
 
     ctx.fillStyle = selected
