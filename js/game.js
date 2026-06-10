@@ -52,7 +52,7 @@ const SCORE_DISPLAY_SCALE = 10;
 let showHitBoxes = false;
 
 const TITLE_MENU_ITEMS = [
-  "START",
+  "RIDE MODE",
   "BOSS MODE",
   "STORY",
   "TUTORIAL",

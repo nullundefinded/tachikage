@@ -65,7 +65,7 @@ function handleTitleKey(e) {
 
   const selectedMenu = TITLE_MENU_ITEMS[titleMenuIndex];
 
-  if (selectedMenu === "START") {
+  if (selectedMenu === "RIDE MODE") {
     enterPlaying();
   }
 
