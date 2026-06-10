@@ -403,6 +403,55 @@ function updateBossChargeHit() {
   }
 }
 
+function getBossAttackTable() {
+  if (boss.life <= 2) {
+    return [
+      { attack: spawnBossParryBullet, weight: 30 },
+      { attack: startBossWaveAttack, weight: 30 },
+      { attack: startBossHiddenRaikanLaugh, weight: 20 },
+      { attack: startBossChargeAttack, weight: 20 }
+    ];
+  }
+
+  if (boss.life <= 3) {
+    return [
+      { attack: spawnBossParryBullet, weight: 45 },
+      { attack: startBossWaveAttack, weight: 40 },
+      { attack: startBossHiddenRaikanLaugh, weight: 15 }
+    ];
+  }
+
+  if (boss.life <= 4) {
+    return [
+      { attack: spawnBossParryBullet, weight: 70 },
+      { attack: startBossWaveAttack, weight: 30 }
+    ];
+  }
+
+  return [
+    { attack: spawnBossParryBullet, weight: 100 }
+  ];
+}
+
+function chooseBossAttackPattern() {
+  const attackTable = getBossAttackTable();
+  const totalWeight = attackTable.reduce(
+    (sum, pattern) => sum + pattern.weight,
+    0
+  );
+  let randomWeight = Math.random() * totalWeight;
+
+  for (let i = 0; i < attackTable.length; i++) {
+    randomWeight -= attackTable[i].weight;
+
+    if (randomWeight < 0) {
+      return attackTable[i].attack;
+    }
+  }
+
+  return attackTable[attackTable.length - 1].attack;
+}
+
 function updateBossParryBullets() {
 
   if (updateBossChargeAttack()) return;
@@ -414,19 +463,7 @@ function updateBossParryBullets() {
     return;
   }
 
-  const attackPattern = Math.floor(
-    Math.random() * BOSS_ATTACK_PATTERN_COUNT
-  );
-
-  if (attackPattern === 0) {
-    spawnBossParryBullet();
-  } else if (attackPattern === 1) {
-    startBossWaveAttack();
-  } else if (attackPattern === 2) {
-    startBossHiddenRaikanLaugh();
-  } else {
-    startBossChargeAttack();
-  }
+  chooseBossAttackPattern()();
 
   boss.parryBulletTimer = BOSS_PARRY_BULLET_INTERVAL;
 }
