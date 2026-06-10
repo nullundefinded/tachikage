@@ -483,6 +483,9 @@ function updateBossEnemy() {
       boss.weakHitTimer = BOSS_WEAK_HIT_FRAMES;
       boss.life = Math.max(0, boss.life - 1);
       addBossWeakExplosion(stake);
+      if (typeof notifyBossGameNavWeakHit === "function") {
+        notifyBossGameNavWeakHit();
+      }
       if (boss.life <= 0) {
         startBossDefeat();
       }
@@ -507,6 +510,10 @@ function updateBossEnemy() {
         boss.bodyGuardImpactX < boss.body.x + boss.body.w / 2
           ? 1
           : -1;
+
+      if (typeof notifyBossGameNavBodyGuardHit === "function") {
+        notifyBossGameNavBodyGuardHit();
+      }
 
       stake.bossBodyGuarded = true;
     }

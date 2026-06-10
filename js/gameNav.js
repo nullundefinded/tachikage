@@ -43,6 +43,10 @@ function resetGameNav() {
     delete gameNavCooldowns[key];
   });
 
+  if (typeof resetBossGameNav === "function") {
+    resetBossGameNav();
+  }
+
   showGameNav(
     "start",
     "normal",
@@ -65,22 +69,7 @@ function updateGameNav() {
 
   const displayScore = Math.floor(score / SCORE_DISPLAY_SCALE);
 
-  if (gameNavTimer > 0) {
-    gameNavTimer--;
-
-    if (gameNavTimer <= 0) {
-      gameNavMessage = null;
-      gameNavPriority = 0;
-    }
-  }
-
-  Object.keys(gameNavCooldowns).forEach(id => {
-    gameNavCooldowns[id]--;
-
-    if (gameNavCooldowns[id] <= 0) {
-      delete gameNavCooldowns[id];
-    }
-  });
+  updateGameNavTimers();
 
   if (
     displayScore >= 50 &&
@@ -240,6 +229,26 @@ function updateGameNav() {
   }
 
   updateGameNavIdleTalk(displayScore);
+}
+
+function updateGameNavTimers() {
+
+  if (gameNavTimer > 0) {
+    gameNavTimer--;
+
+    if (gameNavTimer <= 0) {
+      gameNavMessage = null;
+      gameNavPriority = 0;
+    }
+  }
+
+  Object.keys(gameNavCooldowns).forEach(id => {
+    gameNavCooldowns[id]--;
+
+    if (gameNavCooldowns[id] <= 0) {
+      delete gameNavCooldowns[id];
+    }
+  });
 }
 
 function showGameNavGameOver() {

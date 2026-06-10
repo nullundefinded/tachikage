@@ -237,7 +237,7 @@ function updatePlaying() {
 function updateBoss() {
   if (typeof isBossClear === "function" && isBossClear()) {
     updateBackground();
-    updateGameNav();
+    updateBossGameNav();
     return;
   }
 
@@ -250,6 +250,7 @@ function updateBoss() {
 
   updateActionCommon();
   updateBossEnemy();
+  updateBossGameNav();
 }
 
 function update() {
@@ -269,7 +270,11 @@ function update() {
     return;
   }
   if (gameOver) {
-    updateGameNav();
+    if (gameState === "boss") {
+      updateBossGameNav();
+    } else {
+      updateGameNav();
+    }
     return;
   }
   if (gameState === "boss") {
