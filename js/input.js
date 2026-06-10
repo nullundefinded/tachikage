@@ -50,20 +50,18 @@ document.addEventListener("keydown", e => {
 function handleTitleKey(e) {
 
   if (e.code === "ArrowUp") {
-    titleMenuIndex =
-      (titleMenuIndex + TITLE_MENU_ITEMS.length - 1) %
-      TITLE_MENU_ITEMS.length;
+    titleMenuIndex = getNextTitleMenuIndex(-1);
   }
 
   if (e.code === "ArrowDown") {
-    titleMenuIndex =
-      (titleMenuIndex + 1) %
-      TITLE_MENU_ITEMS.length;
+    titleMenuIndex = getNextTitleMenuIndex(1);
   }
 
   if (e.key !== "Enter") return;
 
   const selectedMenu = TITLE_MENU_ITEMS[titleMenuIndex];
+
+  if (!isTitleMenuItemEnabled(selectedMenu)) return;
 
   if (selectedMenu === "RIDE MODE") {
     enterPlaying();
@@ -88,6 +86,23 @@ function handleTitleKey(e) {
   if (selectedMenu === "CREDITS") {
     enterCredits();
   }
+}
+
+function getNextTitleMenuIndex(direction) {
+
+  let nextIndex = titleMenuIndex;
+
+  for (let i = 0; i < TITLE_MENU_ITEMS.length; i++) {
+    nextIndex =
+      (nextIndex + direction + TITLE_MENU_ITEMS.length) %
+      TITLE_MENU_ITEMS.length;
+
+    if (isTitleMenuItemEnabled(TITLE_MENU_ITEMS[nextIndex])) {
+      return nextIndex;
+    }
+  }
+
+  return titleMenuIndex;
 }
 
 function handleStoryKey(e) {

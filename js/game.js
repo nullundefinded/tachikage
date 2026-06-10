@@ -48,6 +48,11 @@ const SPECIAL_THROW_FRAMES = 14;
 const STAKE_MUZZLE_FLASH_FRAMES = 5;
 const CLEAR_COMBO_FRAMES = 75;
 const SCORE_DISPLAY_SCALE = 10;
+const BOSS_UNLOCK_SCORE = 1000;
+const BOSS_MODE_UNLOCK_STORAGE_KEY = "tachikage.bossModeUnlocked";
+const BOSS_ENTRY_PLAYER_X = 100;
+const BOSS_ENTRY_PLAYER_Y = 200;
+const BOSS_ENTRY_PLAYER_SPEED = 8;
 
 let showHitBoxes = false;
 
@@ -59,6 +64,34 @@ const TITLE_MENU_ITEMS = [
   "CONFIG",
   "CREDITS"
 ];
+
+function readStorageValue(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    return null;
+  }
+}
+
+function writeStorageValue(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    // Storage can be unavailable in some restricted browser modes.
+  }
+}
+
+function isBossModeUnlocked() {
+  return readStorageValue(BOSS_MODE_UNLOCK_STORAGE_KEY) === "1";
+}
+
+function unlockBossMode() {
+  writeStorageValue(BOSS_MODE_UNLOCK_STORAGE_KEY, "1");
+}
+
+function isTitleMenuItemEnabled(item) {
+  return item !== "BOSS MODE" || isBossModeUnlocked();
+}
 
 // ====================
 // 状態遷移
@@ -80,6 +113,19 @@ function enterBoss() {
   resetBoss();
   score = 1000 * SCORE_DISPLAY_SCALE;
   gameState = "boss";
+}
+
+function enterBossFromRide() {
+  unlockBossMode();
+  keys = {};
+  bullets = [];
+  stakes = [];
+  resetBulletClearCombo();
+  clearGameNavMessage();
+  if (typeof resetBossGameNav === "function") {
+    resetBossGameNav();
+  }
+  gameState = "bossTransition";
 }
 
 function enterStory() {
@@ -233,6 +279,53 @@ function updatePlaying() {
     addScore: true,
     spawnBullets: true
   });
+
+  if (score >= BOSS_UNLOCK_SCORE * SCORE_DISPLAY_SCALE) {
+    enterBossFromRide();
+  }
+}
+
+function movePlayerTowardBossEntry() {
+  const dx = BOSS_ENTRY_PLAYER_X - player.x;
+  const dy = BOSS_ENTRY_PLAYER_Y - player.y;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance <= BOSS_ENTRY_PLAYER_SPEED) {
+    player.x = BOSS_ENTRY_PLAYER_X;
+    player.y = BOSS_ENTRY_PLAYER_Y;
+    return true;
+  }
+
+  player.x += dx / distance * BOSS_ENTRY_PLAYER_SPEED;
+  player.y += dy / distance * BOSS_ENTRY_PLAYER_SPEED;
+  return false;
+}
+
+function finishBossTransition() {
+  bullets = [];
+  stakes = [];
+  resetBoss();
+  score = BOSS_UNLOCK_SCORE * SCORE_DISPLAY_SCALE;
+  gameState = "boss";
+}
+
+function updateBossTransition() {
+  frame++;
+  updateBackground();
+  updateEffects();
+  updateGameNavTimers();
+
+  if (player.spin || player.special) {
+    updatePlayer();
+    updateSpecial();
+    bullets = [];
+    stakes = [];
+    return;
+  }
+
+  if (movePlayerTowardBossEntry()) {
+    finishBossTransition();
+  }
 }
 
 function updateBoss() {
@@ -268,6 +361,10 @@ function update() {
   }
   if (gameState === "tutorial") {
     updateTutorial();
+    return;
+  }
+  if (gameState === "bossTransition") {
+    updateBossTransition();
     return;
   }
   if (gameOver) {
@@ -458,6 +555,7 @@ function draw() {
       drawCredits();
       break;
     case "playing":
+    case "bossTransition":
       drawGame();
       break;
     case "boss":
@@ -515,6 +613,7 @@ function loop(timestamp = performance.now()) {
     drawDebugUI();
     if (
       gameState === "playing" ||
+      gameState === "bossTransition" ||
       (
         gameState === "boss" &&
         !(typeof isBossClear === "function" && isBossClear()) &&

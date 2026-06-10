@@ -251,6 +251,12 @@ function updateGameNavTimers() {
   });
 }
 
+function clearGameNavMessage() {
+  gameNavMessage = null;
+  gameNavTimer = 0;
+  gameNavPriority = 0;
+}
+
 function showGameNavGameOver() {
 
   if (gameNavGameOverShown) return;

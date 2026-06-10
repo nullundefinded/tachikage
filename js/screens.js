@@ -124,11 +124,14 @@ function drawTitle() {
   TITLE_MENU_ITEMS.forEach((item, i) => {
 
     const y = 235 + i * 36;
-    const selected = i === titleMenuIndex;
+    const enabled = isTitleMenuItemEnabled(item);
+    const selected = enabled && i === titleMenuIndex;
 
     ctx.fillStyle = selected
       ? "cyan"
-      : "white";
+      : enabled
+        ? "white"
+        : "rgba(255,255,255,0.38)";
 
     ctx.fillText(
       `${selected ? "> " : "  "}${item}${selected ? " <" : "  "}`,
