@@ -44,7 +44,10 @@ function getBossBodyImage() {
   }
 
   if (
-    boss.chargePhase === "bodyCharge" &&
+    (
+      boss.chargePhase === "windup" ||
+      boss.chargePhase === "bodyCharge"
+    ) &&
     imageReady(bossImages.charge)
   ) {
     return bossImages.charge;
@@ -442,6 +445,7 @@ function drawBossEnemy() {
     isLaughing
       ? BOSS_WIN_BODY_DRAW_SCALE
       : (
+        boss.chargePhase === "windup" ||
         boss.chargePhase === "bodyCharge"
       )
         ? BOSS_CHARGE_BODY_DRAW_SCALE

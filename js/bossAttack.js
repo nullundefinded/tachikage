@@ -209,14 +209,17 @@ function getBossRaikanHitBox(raikan) {
 }
 
 function startBossChargeAttack() {
-  boss.chargePhase = "bodyCharge";
-  boss.chargeTimer = 0;
+  boss.chargePhase = "windup";
+  boss.chargeTimer = BOSS_CHARGE_WINDUP_FRAMES;
   boss.chargeX = boss.body.x;
   boss.chargeTargetOffsetY = getBossChargeTargetOffsetY();
   boss.chargeBodyOffsetX = 0;
   boss.chargeBodyOffsetY = 0;
   setBossChargeVelocity();
   boss.chargeUfoOffsetY = 0;
+  boss.warpTimer = 0;
+  boss.warpFromOffsetY = 0;
+  boss.warpToOffsetY = 0;
 }
 
 function getBossChargeTargetOffsetY() {
@@ -287,6 +290,17 @@ function moveBossChargeOffsetTowardZero() {
 
 function updateBossChargeAttack() {
   if (boss.chargePhase === "none") return false;
+
+  if (boss.chargePhase === "windup") {
+    boss.chargeTimer--;
+
+    if (boss.chargeTimer <= 0) {
+      boss.chargePhase = "bodyCharge";
+      boss.chargeTimer = 0;
+    }
+
+    return true;
+  }
 
   if (boss.chargePhase === "bodyCharge") {
     updateBossChargeUfoRetreat();
