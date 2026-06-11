@@ -350,7 +350,7 @@ function drawStakeHelixProcedural(s, front) {
   const centerY = s.y + s.h / 2;
   const trailLength = 145;
   const startRadius = 4;
-  const endRadius = 36;
+  const endRadius = 54;
   const turns = 0.95;
   const steps = 16;
   const phase = s.age * 0.65;

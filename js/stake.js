@@ -79,7 +79,7 @@ function updateSpecial() {
 function stakeEffectTriangle(s) {
 
   const trailLength = 145;
-  const effectRadius = 36;
+  const effectRadius = 54;
   const tipX = s.x + s.w;
   const centerY = s.y + s.h / 2;
 
