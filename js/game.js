@@ -38,6 +38,7 @@ let stakes = [];
 let titleMenuIndex = 0;
 let clearCombo = 0;
 let clearComboTimer = 0;
+let bestCombo = 0;
 
 const DEV_START_BOSS =
   new URLSearchParams(location.search).get("boss") === "1";
@@ -179,6 +180,7 @@ function resetGame() {
   parryFlash = 0;
   clearCombo = 0;
   clearComboTimer = 0;
+  bestCombo = 0;
   gameOver = false;
 }
 
@@ -448,6 +450,7 @@ function drawCoverImage(img) {
 function addBulletClearCombo() {
 
   clearCombo++;
+  bestCombo = Math.max(bestCombo, clearCombo);
   clearComboTimer = CLEAR_COMBO_FRAMES;
   score += clearCombo * SCORE_DISPLAY_SCALE;
 

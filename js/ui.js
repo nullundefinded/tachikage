@@ -5,6 +5,11 @@ const HITBOX_TOGGLE = {
   h: 28
 };
 
+const lifeHeartImages = {
+  full: loadImage("ui.lifeHeart.full", "images/ui/life_heart_full.png"),
+  empty: loadImage("ui.lifeHeart.empty", "images/ui/life_heart_empty.png")
+};
+
 // ====================
 // 当たり判定デバッグ描画
 // ====================
@@ -147,8 +152,10 @@ function drawUI() {
     35
   );
 
+  drawLifeHearts(165, 35);
+
   ctx.fillText(
-    "Damage: " + player.damage + " / 3",
+    `Best Combo: ${bestCombo}`,
     20,
     70
   );
@@ -235,4 +242,48 @@ function drawUI() {
       270
     );
   }
+}
+
+function drawLifeHearts(x, y) {
+
+  const maxLife = 3;
+  const remainingLife = Math.max(0, maxLife - player.damage);
+  const heartSize = 24;
+  const heartGap = 27;
+
+  ctx.save();
+
+  ctx.font = "22px sans-serif";
+  ctx.fillStyle = "white";
+  ctx.fillText("Life:", x, y);
+
+  for (let i = 0; i < maxLife; i++) {
+    const img =
+      i < remainingLife
+        ? lifeHeartImages.full
+        : lifeHeartImages.empty;
+
+    if (imageReady(img)) {
+      ctx.drawImage(
+        img,
+        x + 56 + i * heartGap,
+        y - 22,
+        heartSize,
+        heartSize
+      );
+      continue;
+    }
+
+    ctx.fillStyle =
+      i < remainingLife
+        ? "rgba(255,90,135,0.96)"
+        : "rgba(255,255,255,0.35)";
+    ctx.fillText(
+      i < remainingLife ? "♥" : "♡",
+      x + 54 + i * 24,
+      y
+    );
+  }
+
+  ctx.restore();
 }
