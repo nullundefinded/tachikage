@@ -315,11 +315,11 @@ function updateGameNavIdleTalk(displayScore) {
     },
     {
       face: "laugh",
-      text: "その調子その調子。わたしの解説がいいからかな？"
+      text: "その調子その調子。やっぱあーしの解説がいいからかな？"
     },
     {
       face: "sad",
-      text: "最近ねー、ネイル変えてみてさ…　ってタチカゲ聞いてる？"
+      text: "あーし最近ねー、ネイル変えてみてさ…　ってタチカゲ聞いてる？"
     },
     {
       face: "surprised",

@@ -126,7 +126,7 @@ function updateBossGameNav() {
     showGameNav(
       "bossStart",
       "normal",
-      "バラッド・ラミーガネ…　私たちの…　貴方の敵だよ",
+      "バラッド・ラミーガネ…　あーしたちの…　貴方の敵だよ",
       180,
       4
     );

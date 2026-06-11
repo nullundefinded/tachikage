@@ -63,7 +63,7 @@ window.STORY_LINES = [
     speaker: "黒髪の少女",
     character: "sherry",
     face: "normal",
-    text: "…で、私の事ももちろんわからないと"
+    text: "…で、あーしの事ももちろんわからないと"
   },
   {
     speaker: "タチカゲ",
@@ -93,7 +93,7 @@ window.STORY_LINES = [
     speaker: "黒髪の少女",
     character: "sherry",
     face: "normal",
-    text: "それに私ほら、ホログラムだから、何もできやしないって"
+    text: "それにあーしほら、ホログラムだから、何もできやしないって"
   },
   {
     speaker: "タチカゲ",
@@ -183,7 +183,7 @@ window.STORY_LINES = [
     speaker: "シェリー",
     character: "sherry",
     face: "laugh",
-    text: "あぁ、ごめんごめん！私の勘違いだったみたい！"
+    text: "あぁ、ごめんごめん！あーしの勘違いだったみたい！"
   },
   {
     speaker: "タチカゲ",
@@ -237,7 +237,7 @@ window.STORY_LINES = [
     speaker: "シェリー",
     character: "sherry",
     face: "laugh",
-    text: "ので、私が一肌脱いであげようってわけ！"
+    text: "ので、あーしが一肌脱いであげようってわけ！"
   },
   {
     speaker: "タチカゲ",
@@ -249,7 +249,7 @@ window.STORY_LINES = [
     speaker: "シェリー",
     character: "sherry",
     face: "smug",
-    text: "そりゃー、私がめっちゃいい人だからだよ！"
+    text: "そりゃー、あーしがめっちゃいい人だからだ！"
   },
   {
     speaker: "タチカゲ",

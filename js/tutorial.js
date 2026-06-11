@@ -39,7 +39,7 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "wink",
-    text: "いいねぇ！Enterで私の次のナビを続けて聞いてみて！",
+    text: "いいねぇ！Enterであーしの次のナビを続けて聞いてみて！",
     prompt: "Enter",
     advanceOnEnter: true,
     setup: () => {
