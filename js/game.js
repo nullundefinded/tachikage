@@ -39,6 +39,8 @@ let titleMenuIndex = 0;
 let clearCombo = 0;
 let clearComboTimer = 0;
 let bestCombo = 0;
+let bossStartedFromRide = false;
+let bossModeUnlockedInCurrentBoss = false;
 
 const DEV_START_BOSS =
   new URLSearchParams(location.search).get("boss") === "1";
@@ -99,16 +101,22 @@ function isTitleMenuItemEnabled(item) {
 // ====================
 
 function enterTitle() {
+  bossStartedFromRide = false;
+  bossModeUnlockedInCurrentBoss = false;
   gameState = "title";
 }
 
 function enterPlaying() {
+  bossStartedFromRide = false;
+  bossModeUnlockedInCurrentBoss = false;
   resetGame();
   resetGameNav();
   gameState = "playing";
 }
 
 function enterBoss() {
+  bossStartedFromRide = false;
+  bossModeUnlockedInCurrentBoss = false;
   resetGame();
   resetGameNav();
   resetBoss();
@@ -117,7 +125,11 @@ function enterBoss() {
 }
 
 function enterBossFromRide() {
+  const wasBossModeUnlocked = isBossModeUnlocked();
+
   unlockBossMode();
+  bossStartedFromRide = true;
+  bossModeUnlockedInCurrentBoss = !wasBossModeUnlocked;
   keys = {};
   bullets = [];
   stakes = [];

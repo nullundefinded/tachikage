@@ -234,12 +234,34 @@ function drawUI() {
       220
     );
 
+    const showBossModeUnlockNotice =
+      gameState === "boss" &&
+      bossModeUnlockedInCurrentBoss;
+    const retryText = bossStartedFromRide
+      ? "Enter: Retry RIDE   Esc: Title"
+      : "Enter: Retry   Esc: Title";
+    const retryY = showBossModeUnlockNotice ? 310 : 270;
+
+    if (showBossModeUnlockNotice) {
+      const noticeText =
+        "BOSS MODE が Title から選択できるようになりました";
+
+      ctx.fillStyle = "cyan";
+      ctx.font = "22px sans-serif";
+      ctx.fillText(
+        noticeText,
+        (canvas.width - ctx.measureText(noticeText).width) / 2,
+        270
+      );
+    }
+
+    ctx.fillStyle = "white";
     ctx.font = "24px sans-serif";
 
     ctx.fillText(
-      "Enter: Retry   Esc: Title",
-      250,
-      270
+      retryText,
+      (canvas.width - ctx.measureText(retryText).width) / 2,
+      retryY
     );
   }
 }

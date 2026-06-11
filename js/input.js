@@ -154,10 +154,12 @@ function handlePlayingKey(e) {
 function handleGameOverKey(e) {
 
   if (e.key === "Enter") {
-    if (
-      gameState === "boss" ||
-      DEV_START_BOSS
-    ) {
+    if (gameState === "boss" && bossStartedFromRide) {
+      enterPlaying();
+      return;
+    }
+
+    if (gameState === "boss" || DEV_START_BOSS) {
       enterBoss();
       return;
     }
