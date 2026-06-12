@@ -2,6 +2,14 @@
 // 入力
 // ====================
 
+const TITLE_MENU_MOUSE_BOX = {
+  x: 250,
+  y: 215,
+  w: 300,
+  h: 30,
+  gap: 36
+};
+
 document.addEventListener("keydown", e => {
 
   keys[e.key] = true;
@@ -70,6 +78,11 @@ function handleTitleKey(e) {
   const selectedMenu = TITLE_MENU_ITEMS[titleMenuIndex];
 
   if (!isTitleMenuItemEnabled(selectedMenu)) return;
+
+  activateTitleMenuItem(selectedMenu);
+}
+
+function activateTitleMenuItem(selectedMenu) {
 
   if (selectedMenu === "RIDE MODE") {
     enterPlaying();
@@ -202,3 +215,62 @@ debugCanvas.addEventListener("click", e => {
     drawDebugUI();
   }
 });
+
+canvas.addEventListener("mousemove", e => {
+  if (gameState !== "title") {
+    return;
+  }
+
+  const index = getTitleMenuIndexAtMouseEvent(e);
+
+  if (
+    index >= 0 &&
+    isTitleMenuItemEnabled(TITLE_MENU_ITEMS[index])
+  ) {
+    titleMenuIndex = index;
+  }
+});
+
+canvas.addEventListener("click", e => {
+  if (gameState !== "title") {
+    return;
+  }
+
+  const index = getTitleMenuIndexAtMouseEvent(e);
+
+  if (
+    index < 0 ||
+    !isTitleMenuItemEnabled(TITLE_MENU_ITEMS[index])
+  ) {
+    return;
+  }
+
+  titleMenuIndex = index;
+  activateTitleMenuItem(TITLE_MENU_ITEMS[index]);
+});
+
+function getTitleMenuIndexAtMouseEvent(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * canvas.width / rect.width;
+  const y = (e.clientY - rect.top) * canvas.height / rect.height;
+
+  if (
+    x < TITLE_MENU_MOUSE_BOX.x ||
+    x > TITLE_MENU_MOUSE_BOX.x + TITLE_MENU_MOUSE_BOX.w
+  ) {
+    return -1;
+  }
+
+  for (let i = 0; i < TITLE_MENU_ITEMS.length; i++) {
+    const itemY = TITLE_MENU_MOUSE_BOX.y + i * TITLE_MENU_MOUSE_BOX.gap;
+
+    if (
+      y >= itemY &&
+      y <= itemY + TITLE_MENU_MOUSE_BOX.h
+    ) {
+      return i;
+    }
+  }
+
+  return -1;
+}

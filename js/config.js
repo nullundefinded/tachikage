@@ -6,8 +6,20 @@ const CONFIG_KEY_BINDINGS_STORAGE_KEY = "tachikage.keyBindings";
 const CONFIG_STORAGE_KEY_PREFIX = "tachikage.";
 const CONFIG_BOSS_MODE_UNLOCK_STORAGE_KEY = "tachikage.bossModeUnlocked";
 
+const configGameCanvas = document.getElementById("game");
 const configResetCanvas = document.getElementById("config-reset-ui");
 const configResetCtx = configResetCanvas.getContext("2d");
+const CONFIG_LAYOUT = Object.freeze({
+  keyColumnX: 100,
+  keyColumnW: 350,
+  resetColumnX: 475,
+  resetColumnW: 300,
+  valueColumnX: 300,
+  sectionY: 106,
+  firstItemY: 138,
+  itemGap: 34,
+  itemHitH: 28
+});
 
 const DEFAULT_KEY_BINDINGS = Object.freeze({
   up: "ArrowUp",
@@ -51,6 +63,7 @@ let configMenuIndex = 0;
 let configCaptureAction = null;
 let configConfirmAction = null;
 let configMessage = "";
+let configMessageTimer = 0;
 
 function readConfigStorageValue(key) {
   try {
@@ -109,6 +122,26 @@ function saveKeyBindings() {
     CONFIG_KEY_BINDINGS_STORAGE_KEY,
     JSON.stringify(keyBindings)
   );
+}
+
+function showConfigMessage(message) {
+  configMessage = message;
+  configMessageTimer = 0;
+}
+
+function showConfigNotice(message) {
+  configMessage = message;
+  configMessageTimer = 60;
+}
+
+function updateConfigMessageTimer() {
+  if (configMessageTimer <= 0) return;
+
+  configMessageTimer--;
+
+  if (configMessageTimer <= 0) {
+    configMessage = "";
+  }
 }
 
 function isControlPressed(action) {
@@ -244,7 +277,7 @@ function handleConfigKey(e) {
 function handleConfigConfirmKey(e) {
   if (e.key === "Escape") {
     configConfirmAction = null;
-    configMessage = "Reset canceled";
+    showConfigNotice("Reset canceled");
     return;
   }
 
@@ -258,31 +291,33 @@ function handleConfigConfirmKey(e) {
 function handleConfigCaptureKey(e) {
   if (e.key === "Escape") {
     configCaptureAction = null;
-    configMessage = "Key change canceled";
+    showConfigNotice("Key change canceled");
     return;
   }
 
   const usedAction = findActionByCode(e.code, configCaptureAction);
 
   if (usedAction) {
-    configMessage =
-      `${formatKeyCode(e.code)} is already used by ${usedAction.label}`;
+    showConfigNotice(
+      `${formatKeyCode(e.code)} is already used by ${usedAction.label}`
+    );
     return;
   }
 
   keyBindings[configCaptureAction] = e.code;
   saveKeyBindings();
 
-  configMessage =
+  showConfigNotice(
     `${getControlActionLabel(configCaptureAction)} set to ` +
-    getControlKeyLabel(configCaptureAction);
+    getControlKeyLabel(configCaptureAction)
+  );
   configCaptureAction = null;
 }
 
 function activateConfigMenuItem(item) {
   if (item.type === "key") {
     configCaptureAction = item.action;
-    configMessage = `Press a key for ${getControlActionLabel(item.action)}`;
+    showConfigMessage(`Press a key for ${getControlActionLabel(item.action)}`);
     return;
   }
 
@@ -293,27 +328,27 @@ function activateConfigMenuItem(item) {
 
   if (item.id === "resetBossUnlock") {
     removeConfigStorageValue(CONFIG_BOSS_MODE_UNLOCK_STORAGE_KEY);
-    configMessage = "Boss Mode unlock reset";
+    showConfigNotice("Boss Mode unlock reset");
     return;
   }
 
   if (item.id === "resetTachikageStorage") {
     resetTachikageStorage();
     keyBindings = getDefaultKeyBindings();
-    configMessage = "TACHIKAGE localStorage reset";
+    showConfigNotice("TACHIKAGE localStorage reset");
   }
 }
 
 function startKeyResetConfirm() {
   configCaptureAction = null;
   configConfirmAction = "resetKeys";
-  configMessage = "Reset key config? Enter / Click: Yes   Esc: Cancel";
+  showConfigMessage("Reset key config? Enter / Click: Yes   Esc: Cancel");
 }
 
 function confirmKeyReset() {
   resetKeyConfig();
   configConfirmAction = null;
-  configMessage = "Key config reset";
+  showConfigMessage("");
 }
 
 function resetKeyConfig() {
@@ -386,6 +421,8 @@ function drawConfigResetUI() {
 }
 
 function drawConfig() {
+  updateConfigMessageTimer();
+
   ctx.fillStyle = "#02080e";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -397,16 +434,16 @@ function drawConfig() {
   ctx.font = "34px sans-serif";
   ctx.fillText("CONFIG", canvas.width / 2, 62);
 
-  const keyColumnX = 100;
-  const keyColumnW = 350;
-  const resetColumnX = 475;
-  const valueColumnX = 300;
+  const keyColumnX = CONFIG_LAYOUT.keyColumnX;
+  const keyColumnW = CONFIG_LAYOUT.keyColumnW;
+  const resetColumnX = CONFIG_LAYOUT.resetColumnX;
+  const valueColumnX = CONFIG_LAYOUT.valueColumnX;
   const keyValueMaxW = keyColumnX + keyColumnW - valueColumnX;
 
   ctx.textAlign = "left";
-  drawConfigSection("KEY SETTINGS", keyColumnX, 106);
+  drawConfigSection("KEY SETTINGS", keyColumnX, CONFIG_LAYOUT.sectionY);
 
-  let y = 138;
+  let y = CONFIG_LAYOUT.firstItemY;
 
   CONFIG_MENU_ITEMS.slice(0, 6).forEach((item, index) => {
     drawConfigMenuItem(
@@ -418,11 +455,11 @@ function drawConfig() {
       y,
       index === configMenuIndex
     );
-    y += 34;
+    y += CONFIG_LAYOUT.itemGap;
   });
 
-  drawConfigSection("RESET", resetColumnX, 106);
-  y = 138;
+  drawConfigSection("RESET", resetColumnX, CONFIG_LAYOUT.sectionY);
+  y = CONFIG_LAYOUT.firstItemY;
 
   CONFIG_MENU_ITEMS.slice(6).forEach((item, index) => {
     const menuIndex = index + 6;
@@ -435,9 +472,8 @@ function drawConfig() {
       y,
       menuIndex === configMenuIndex
     );
-    y += 34;
+    y += CONFIG_LAYOUT.itemGap;
   });
-
   ctx.textAlign = "center";
   ctx.fillStyle = "rgba(210,245,255,0.72)";
   ctx.font = "16px sans-serif";
@@ -488,6 +524,104 @@ function drawConfigMenuItem(item, x, valueX, valueMaxW, fontSize, y, selected) {
 
   ctx.fillText(item.label, x, y);
 }
+
+function getConfigMenuIndexAtPoint(x, y) {
+  const keyIndex = getConfigColumnIndexAtPoint(
+    x,
+    y,
+    CONFIG_LAYOUT.keyColumnX - 36,
+    CONFIG_LAYOUT.keyColumnW + 36,
+    0,
+    6
+  );
+
+  if (keyIndex >= 0) return keyIndex;
+
+  return getConfigColumnIndexAtPoint(
+    x,
+    y,
+    CONFIG_LAYOUT.resetColumnX - 36,
+    CONFIG_LAYOUT.resetColumnW + 36,
+    6,
+    CONFIG_MENU_ITEMS.length - 6
+  );
+}
+
+function getConfigColumnIndexAtPoint(
+  x,
+  y,
+  columnX,
+  columnW,
+  startIndex,
+  count
+) {
+  if (
+    x < columnX ||
+    x > columnX + columnW
+  ) {
+    return -1;
+  }
+
+  for (let i = 0; i < count; i++) {
+    const itemY =
+      CONFIG_LAYOUT.firstItemY + i * CONFIG_LAYOUT.itemGap;
+
+    if (
+      y >= itemY - CONFIG_LAYOUT.itemHitH + 6 &&
+      y <= itemY + 6
+    ) {
+      return startIndex + i;
+    }
+  }
+
+  return -1;
+}
+
+function getConfigPointFromMouseEvent(e) {
+  const rect = configGameCanvas.getBoundingClientRect();
+
+  return {
+    x: (e.clientX - rect.left) * configGameCanvas.width / rect.width,
+    y: (e.clientY - rect.top) * configGameCanvas.height / rect.height
+  };
+}
+
+configGameCanvas.addEventListener("mousemove", e => {
+  if (
+    gameState !== "config" ||
+    configCaptureAction ||
+    configConfirmAction
+  ) {
+    return;
+  }
+
+  const point = getConfigPointFromMouseEvent(e);
+  const index = getConfigMenuIndexAtPoint(point.x, point.y);
+
+  if (index >= 0) {
+    configMenuIndex = index;
+  }
+});
+
+configGameCanvas.addEventListener("click", e => {
+  if (gameState !== "config") return;
+
+  const point = getConfigPointFromMouseEvent(e);
+
+  if (
+    configCaptureAction ||
+    configConfirmAction
+  ) {
+    return;
+  }
+
+  const index = getConfigMenuIndexAtPoint(point.x, point.y);
+
+  if (index >= 0) {
+    configMenuIndex = index;
+    activateConfigMenuItem(CONFIG_MENU_ITEMS[index]);
+  }
+});
 
 configResetCanvas.addEventListener("click", () => {
   if (!shouldShowConfigResetUI()) return;
