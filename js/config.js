@@ -397,10 +397,10 @@ function drawConfig() {
   ctx.font = "34px sans-serif";
   ctx.fillText("CONFIG", canvas.width / 2, 62);
 
-  const keyColumnX = 110;
+  const keyColumnX = 100;
   const keyColumnW = 350;
-  const resetColumnX = 510;
-  const valueColumnX = 310;
+  const resetColumnX = 475;
+  const valueColumnX = 300;
   const keyValueMaxW = keyColumnX + keyColumnW - valueColumnX;
 
   ctx.textAlign = "left";
