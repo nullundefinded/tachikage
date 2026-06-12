@@ -102,10 +102,10 @@ function updatePlayer() {
   }
 
   // プレイヤー移動
-  if (keys["ArrowUp"]) player.y -= player.speed;
-  if (keys["ArrowDown"]) player.y += player.speed;
-  if (keys["ArrowLeft"]) player.x -= player.speed;
-  if (keys["ArrowRight"]) player.x += player.speed;
+  if (isControlPressed("up")) player.y -= player.speed;
+  if (isControlPressed("down")) player.y += player.speed;
+  if (isControlPressed("left")) player.x -= player.speed;
+  if (isControlPressed("right")) player.x += player.speed;
 
   // 画面外制限
   player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));

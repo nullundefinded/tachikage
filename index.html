@@ -23,6 +23,12 @@ body {
   gap: 8px;
 }
 
+.top-ui {
+  width: 800px;
+  display: flex;
+  justify-content: space-between;
+}
+
 canvas {
   border: 2px solid white;
   background: #02080e;
@@ -32,13 +38,20 @@ canvas {
 #dialogue-ui {
   border: none;
 }
+
+#config-reset-ui {
+  visibility: hidden;
+}
 </style>
 </head>
 
 <body>
 
 <div class="game-wrap">
-  <canvas id="debug-ui" width="130" height="28"></canvas>
+  <div class="top-ui">
+    <canvas id="debug-ui" width="130" height="28"></canvas>
+    <canvas id="config-reset-ui" width="130" height="28"></canvas>
+  </div>
   <canvas id="game" width="800" height="450"></canvas>
   <canvas id="dialogue-ui" width="800" height="120"></canvas>
 </div>
@@ -46,6 +59,7 @@ canvas {
 <script src="js/assets.js"></script>
 <script src="js/storyLines.js"></script>
 <script src="js/adv.js"></script>
+<script src="js/config.js"></script>
 <script src="js/gameNav.js"></script>
 <script src="js/tutorial.js"></script>
 <script src="js/effects.js"></script>

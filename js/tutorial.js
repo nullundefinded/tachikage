@@ -28,8 +28,8 @@ const TUTORIAL_COMBO_HIGHLIGHT_FRAMES = 300;
 const TUTORIAL_STEPS = [
   {
     face: "normal",
-    text: "まずは移動！矢印キーで動いてみて！",
-    prompt: "Arrow keys",
+    text: () => `まずは移動！${getMovementControlTextLabel()}で動いてみて！`,
+    prompt: () => getMovementControlLabel(),
     setup: () => {
       tutorialMoved = false;
       bullets = [];
@@ -61,8 +61,9 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "wink",
-    text: "次はSpaceでパリィ姿勢！回転して弾をはじく準備をしてみよっ！",
-    prompt: "Space",
+    text: () =>
+      `次は${getControlKeyLabel("parry")}でパリィ姿勢！回転して弾をはじく準備をしてみよっ！`,
+    prompt: () => getControlKeyLabel("parry"),
     setup: () => {
       tutorialPressedParry = false;
       bullets = [];
@@ -96,8 +97,9 @@ const TUTORIAL_STEPS = [
   },
   {
     face: "surprised",
-    text: "それじゃ、Xで超電磁杭を撃ってみよう！超電磁杭でも弾を消せちゃうよ！",
-    prompt: "X",
+    text: () =>
+      `それじゃ、${getControlKeyLabel("special")}で超電磁杭を撃ってみよう！超電磁杭でも弾を消せちゃうよ！`,
+    prompt: () => getControlKeyLabel("special"),
     setup: () => {
       tutorialPressedStake = false;
       parryCount = MAX_PARRY;
@@ -109,7 +111,7 @@ const TUTORIAL_STEPS = [
   {
     face: "wink",
     text: "いっけー！",
-    prompt: "X to clear",
+    prompt: () => `${getControlKeyLabel("special")} to clear`,
     setup: () => {
       tutorialClearedBullets = 0;
       parryCount = MAX_PARRY;
@@ -211,21 +213,16 @@ function handleTutorialKey(e) {
     return true;
   }
 
-  if (
-    e.code === "ArrowUp" ||
-    e.code === "ArrowDown" ||
-    e.code === "ArrowLeft" ||
-    e.code === "ArrowRight"
-  ) {
+  if (isMovementControlKey(e)) {
     tutorialMoved = true;
   }
 
-  if (e.code === "Space") {
+  if (isControlKey(e, "parry")) {
     tutorialPressedParry = true;
   }
 
   if (
-    e.code === "KeyX" &&
+    isControlKey(e, "special") &&
     parryCount >= MAX_PARRY
   ) {
     tutorialPressedStake = true;
@@ -363,7 +360,9 @@ function drawTutorialDialogue() {
   drawDialoguePanel();
 
   const activeFace = tutorialAdviceTimer > 0 ? "sad" : step.face;
-  const activeText = tutorialAdviceTimer > 0 ? tutorialAdviceText : step.text;
+  const rawText = tutorialAdviceTimer > 0 ? tutorialAdviceText : step.text;
+  const activeText =
+    typeof rawText === "function" ? rawText() : rawText;
   const promptText =
     typeof step.prompt === "function" ? step.prompt() : step.prompt;
   const icon = tutorialSherryFaces[activeFace] || tutorialSherryFaces.normal;

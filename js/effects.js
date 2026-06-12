@@ -26,11 +26,11 @@ function drawTrailEffect() {
 
   let forwardPower = 1.0;
 
-  if (keys["ArrowLeft"]) {
+  if (isControlPressed("left")) {
     forwardPower = 0.45;
   }
 
-  if (keys["ArrowRight"]) {
+  if (isControlPressed("right")) {
     forwardPower = 1.25;
   }
 

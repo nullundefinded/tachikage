@@ -78,7 +78,7 @@ function updateGameNav() {
     showGameNav(
       "parryTip",
       "normal",
-      "…あ、ちなみにSpace押すとパリィだよー　無敵になりながら早く動けてお得！",
+      `…あ、ちなみに${getControlKeyLabel("parry")}押すとパリィだよー　無敵になりながら早く動けてお得！`,
       240,
       5
     );
@@ -213,8 +213,8 @@ function updateGameNav() {
       "stakeReady",
       "wink",
       pickGameNavLine([
-        "チャージ完了！Xで超電磁杭だよ！",
-        "バリバリ来てるねぇ！Xでぶっ放そ！",
+        `チャージ完了！${getControlKeyLabel("special")}で超電磁杭だよ！`,
+        `バリバリ来てるねぇ！${getControlKeyLabel("special")}でぶっ放そ！`,
         "今なら撃てるよ！超電磁杭、いっちゃえ！"
       ]),
       180,

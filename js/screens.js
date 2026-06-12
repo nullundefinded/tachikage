@@ -182,17 +182,6 @@ function drawInfoScreen(title, lines) {
   ctx.textAlign = "left";
 }
 
-function drawConfig() {
-
-  drawInfoScreen(
-    "CONFIG",
-    [
-      "Coming soon",
-      "Effect quality, controls, and display options"
-    ]
-  );
-}
-
 function drawCredits() {
 
   drawInfoScreen(

@@ -5,6 +5,7 @@
 document.addEventListener("keydown", e => {
 
   keys[e.key] = true;
+  keys[e.code] = true;
 
   if (gameState === "title") {
     handleTitleKey(e);
@@ -25,10 +26,12 @@ document.addEventListener("keydown", e => {
     return;
   }
 
-  if (
-    gameState === "config" ||
-    gameState === "credits"
-  ) {
+  if (gameState === "config") {
+    handleConfigKey(e);
+    return;
+  }
+
+  if (gameState === "credits") {
     handleInfoScreenKey(e);
     return;
   }
@@ -49,11 +52,16 @@ document.addEventListener("keydown", e => {
 
 function handleTitleKey(e) {
 
-  if (e.code === "ArrowUp") {
+  if (configConfirmAction) {
+    handleConfigConfirmKey(e);
+    return;
+  }
+
+  if (isControlKey(e, "up")) {
     titleMenuIndex = getNextTitleMenuIndex(-1);
   }
 
-  if (e.code === "ArrowDown") {
+  if (isControlKey(e, "down")) {
     titleMenuIndex = getNextTitleMenuIndex(1);
   }
 
@@ -133,7 +141,7 @@ function handleInfoScreenKey(e) {
 function handlePlayingKey(e) {
 
   if (
-    e.code === "Space" &&
+    isControlKey(e, "parry") &&
     !e.repeat &&
     !player.spin &&
     player.spinCooldown <= 0
@@ -144,7 +152,7 @@ function handlePlayingKey(e) {
   }
 
   if (
-    e.code === "KeyX" &&
+    isControlKey(e, "special") &&
     parryCount >= MAX_PARRY
   ) {
     startSpecial();
@@ -175,6 +183,7 @@ function handleGameOverKey(e) {
 
 document.addEventListener("keyup", e => {
   keys[e.key] = false;
+  keys[e.code] = false;
 });
 
 debugCanvas.addEventListener("click", e => {

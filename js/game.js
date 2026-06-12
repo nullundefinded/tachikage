@@ -626,6 +626,7 @@ function loop(timestamp = performance.now()) {
   perfMeasureDraw(() => {
     draw();
     drawDebugUI();
+    drawConfigResetUI();
     if (
       gameState === "playing" ||
       gameState === "bossTransition" ||
