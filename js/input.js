@@ -128,16 +128,25 @@ function getNextTitleMenuIndex(direction) {
 
 function handleStoryKey(e) {
 
+  if (
+    typeof isStorySelectActive === "function" &&
+    isStorySelectActive()
+  ) {
+    handleStorySelectKey(e);
+    return;
+  }
+
   if (e.key === "Escape") {
-    enterTitle();
+    resetStory();
+    return;
   }
 
   if (e.key !== "Enter") return;
 
-  if (storyLineIndex < STORY_LINES.length - 1) {
+  if (!isStoryLastLine()) {
     advanceStoryLine();
   } else {
-    enterTitle();
+    resetStory();
   }
 }
 

@@ -20,9 +20,13 @@ const storyImages = {
 };
 
 let storyLineIndex = 0;
+let storyMode = "select";
+let storyChapterIndex = 0;
+let currentStoryLines = null;
 
 const STORY_CHARACTER_ENTER_FRAMES = 18;
 const STORY_CHARACTER_SLIDE = 36;
+const STORY_UNLOCK_STORAGE_PREFIX = "tachikage.story.";
 
 const STORY_LINES = window.STORY_LINES || [
   {
@@ -30,6 +34,51 @@ const STORY_LINES = window.STORY_LINES || [
     character: "tachikage",
     face: "normal",
     text: "storyLines.jsが読み込めませんでした。"
+  }
+];
+
+const STORY_CHAPTERS = [
+  {
+    id: "intro",
+    title: "はじまり",
+    unlockKey: null,
+    lines: STORY_LINES
+  },
+  {
+    id: "neonCity",
+    title: "ネオンシティについて",
+    unlockKey: "neonCity",
+    lines: STORY_LINES
+  },
+  {
+    id: "balad",
+    title: "バラッドについて",
+    unlockKey: "balad",
+    lines: STORY_LINES
+  },
+  {
+    id: "bossAdvice",
+    title: "バラッド戦アドバイス",
+    unlockKey: "bossAdvice",
+    lines: STORY_LINES
+  },
+  {
+    id: "ending",
+    title: "エンディング",
+    unlockKey: "ending",
+    lines: STORY_LINES
+  },
+  {
+    id: "epilogueExtra",
+    title: "蛇足",
+    unlockKey: "epilogueExtra",
+    lines: STORY_LINES
+  },
+  {
+    id: "afterword",
+    title: "注釈・あとがき",
+    unlockKey: "afterword",
+    lines: STORY_LINES
   }
 ];
 
@@ -46,15 +95,67 @@ const storyCharacterStates = {
   }
 };
 
-function resetStory() {
+function readStoryStorageValue(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    return null;
+  }
+}
 
-  storyLineIndex = 0;
+function writeStoryStorageValue(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    // Storage can be unavailable in some restricted browser modes.
+  }
+}
+
+function isStoryChapterUnlocked(chapter) {
+  if (!chapter.unlockKey) return true;
+
+  return readStoryStorageValue(
+    STORY_UNLOCK_STORAGE_PREFIX + chapter.unlockKey
+  ) === "1";
+}
+
+function unlockStoryChapter(id) {
+  const chapter = STORY_CHAPTERS.find(item => item.id === id);
+
+  if (!chapter || !chapter.unlockKey) return;
+
+  writeStoryStorageValue(
+    STORY_UNLOCK_STORAGE_PREFIX + chapter.unlockKey,
+    "1"
+  );
+}
+
+function resetStoryCharacters() {
 
   Object.values(storyCharacterStates).forEach(state => {
     state.face = "normal";
     state.visible = false;
     state.animFrame = STORY_CHARACTER_ENTER_FRAMES;
   });
+}
+
+function resetStory() {
+
+  storyMode = "select";
+  storyLineIndex = 0;
+  currentStoryLines = STORY_LINES;
+  resetStoryCharacters();
+  drawDialogueUI("", "");
+}
+
+function startStoryChapter(chapter) {
+
+  if (!isStoryChapterUnlocked(chapter)) return;
+
+  storyMode = "play";
+  storyLineIndex = 0;
+  currentStoryLines = chapter.lines || STORY_LINES;
+  resetStoryCharacters();
 
   applyStoryLine();
 }
@@ -67,7 +168,7 @@ function advanceStoryLine() {
 
 function applyStoryLine() {
 
-  const line = STORY_LINES[storyLineIndex];
+  const line = currentStoryLines[storyLineIndex];
 
   if (!line) return;
 
@@ -86,6 +187,8 @@ function applyStoryLine() {
 
 function updateStory() {
 
+  if (storyMode !== "play") return;
+
   Object.values(storyCharacterStates).forEach(state => {
     if (
       state.visible &&
@@ -94,6 +197,54 @@ function updateStory() {
       state.animFrame++;
     }
   });
+}
+
+function isStorySelectActive() {
+  return storyMode === "select";
+}
+
+function isStoryLastLine() {
+  return storyLineIndex >= currentStoryLines.length - 1;
+}
+
+function getNextStoryChapterIndex(direction) {
+  let nextIndex = storyChapterIndex;
+
+  for (let i = 0; i < STORY_CHAPTERS.length; i++) {
+    nextIndex =
+      (nextIndex + direction + STORY_CHAPTERS.length) %
+      STORY_CHAPTERS.length;
+
+    if (isStoryChapterUnlocked(STORY_CHAPTERS[nextIndex])) {
+      return nextIndex;
+    }
+  }
+
+  return storyChapterIndex;
+}
+
+function handleStorySelectKey(e) {
+  if (e.key === "Escape") {
+    enterTitle();
+    return true;
+  }
+
+  if (isControlKey(e, "up")) {
+    storyChapterIndex = getNextStoryChapterIndex(-1);
+    return true;
+  }
+
+  if (isControlKey(e, "down")) {
+    storyChapterIndex = getNextStoryChapterIndex(1);
+    return true;
+  }
+
+  if (e.key === "Enter") {
+    startStoryChapter(STORY_CHAPTERS[storyChapterIndex]);
+    return true;
+  }
+
+  return true;
 }
 
 function drawDialogueUI(speaker, text, promptText = "Enter") {
@@ -335,8 +486,13 @@ function drawStoryCharacter(character, side, active) {
 
 function drawStory() {
 
-  const line = STORY_LINES[storyLineIndex];
-  const isLastLine = storyLineIndex === STORY_LINES.length - 1;
+  if (storyMode === "select") {
+    drawStorySelect();
+    return;
+  }
+
+  const line = currentStoryLines[storyLineIndex];
+  const isLastLine = storyLineIndex === currentStoryLines.length - 1;
 
   drawBackground();
   ctx.fillStyle = "rgba(0,0,0,0.38)";
@@ -373,4 +529,63 @@ function drawStory() {
       ? "Enter/Escでタイトルに戻る"
       : "Enter"
   );
+}
+
+function drawStorySelect() {
+
+  ctx.fillStyle = "#02080e";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.textAlign = "center";
+  ctx.textBaseline = "alphabetic";
+
+  ctx.fillStyle = "cyan";
+  ctx.font = "38px sans-serif";
+  ctx.fillText(
+    "STORY",
+    canvas.width / 2,
+    96
+  );
+
+  ctx.font = "22px sans-serif";
+
+  STORY_CHAPTERS.forEach((chapter, index) => {
+    const enabled = isStoryChapterUnlocked(chapter);
+    const selected = enabled && index === storyChapterIndex;
+    const y = 150 + index * 34;
+
+    ctx.fillStyle = selected
+      ? "cyan"
+      : enabled
+        ? "white"
+        : "rgba(255,255,255,0.34)";
+
+    ctx.fillText(
+      `${selected ? "> " : "  "}${chapter.title}${selected ? " <" : "  "}`,
+      canvas.width / 2,
+      y
+    );
+
+    if (!enabled) {
+      ctx.fillStyle = "rgba(210,245,255,0.42)";
+      ctx.font = "14px sans-serif";
+      ctx.fillText(
+        "LOCKED",
+        canvas.width / 2 + 210,
+        y - 2
+      );
+      ctx.font = "22px sans-serif";
+    }
+  });
+
+  ctx.fillStyle = "rgba(210,245,255,0.72)";
+  ctx.font = "16px sans-serif";
+  ctx.fillText(
+    "Move: Select   Enter: Read   Esc: Title",
+    canvas.width / 2,
+    410
+  );
+
+  ctx.textAlign = "left";
+  drawDialogueUI("", "");
 }
