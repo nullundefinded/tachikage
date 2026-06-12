@@ -70,6 +70,21 @@ function getPlayerParryBox() {
 
 function updatePlayer() {
 
+  const cheatParryHeld =
+    typeof isCheatModeEnabled === "function" &&
+    isCheatModeEnabled() &&
+    isControlPressed("parry");
+
+  if (
+    cheatParryHeld &&
+    !player.spin
+  ) {
+    player.spin = true;
+    player.spinTimer = 0;
+    player.spinCooldown = 0;
+    player.speed = player.boostSpeed;
+  }
+
   if (player.spinCooldown > 0) {
     player.spinCooldown--;
   }
@@ -93,11 +108,18 @@ function updatePlayer() {
     }
 
     if (player.spinTimer >= spinTotal) {
-      player.spin = false;
-      player.spinTimer = 0;
-      player.spinCooldown = 5;
-      player.rotation = 0;
-      player.speed = player.normalSpeed;
+      if (cheatParryHeld) {
+        player.spinTimer = 0;
+        player.spinCooldown = 0;
+        player.rotation = 0;
+        player.speed = player.boostSpeed;
+      } else {
+        player.spin = false;
+        player.spinTimer = 0;
+        player.spinCooldown = 5;
+        player.rotation = 0;
+        player.speed = player.normalSpeed;
+      }
     }
   }
 

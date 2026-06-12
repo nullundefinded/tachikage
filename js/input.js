@@ -175,7 +175,14 @@ function handlePlayingKey(e) {
 
   if (
     isControlKey(e, "special") &&
-    parryCount >= MAX_PARRY
+    !player.special &&
+    (
+      parryCount >= MAX_PARRY ||
+      (
+        typeof isCheatModeEnabled === "function" &&
+        isCheatModeEnabled()
+      )
+    )
   ) {
     startSpecial();
   }

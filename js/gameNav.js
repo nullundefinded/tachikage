@@ -285,10 +285,16 @@ function showGameNavGameOver() {
     ];
   }
 
+  const storyUnlockNotice =
+    typeof consumeStoryUnlockNoticeText === "function"
+      ? consumeStoryUnlockNoticeText()
+      : "";
+  const message = storyUnlockNotice || pickGameNavLine(lines);
+
   showGameNav(
     "gameOver",
     face,
-    pickGameNavLine(lines),
+    message,
     240,
     10
   );

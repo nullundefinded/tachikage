@@ -41,6 +41,7 @@ let clearComboTimer = 0;
 let bestCombo = 0;
 let bossStartedFromRide = false;
 let bossModeUnlockedInCurrentBoss = false;
+let pendingStoryUnlockTitles = [];
 
 const DEV_START_BOSS =
   new URLSearchParams(location.search).get("boss") === "1";
@@ -58,6 +59,24 @@ const BOSS_ENTRY_PLAYER_Y = 200;
 const BOSS_ENTRY_PLAYER_SPEED = 8;
 
 let showHitBoxes = false;
+
+const STORY_SCORE_UNLOCKS = [
+  {
+    score: 300,
+    chapterId: "neonCity",
+    title: "ネオンシティについて"
+  },
+  {
+    score: 600,
+    chapterId: "balad",
+    title: "バラッドについて"
+  },
+  {
+    score: 1000,
+    chapterId: "bossAdvice",
+    title: "バラッド戦アドバイス"
+  }
+];
 
 const TITLE_MENU_ITEMS = [
   "RIDE MODE",
@@ -193,6 +212,7 @@ function resetGame() {
   clearCombo = 0;
   clearComboTimer = 0;
   bestCombo = 0;
+  pendingStoryUnlockTitles = [];
   gameOver = false;
 }
 
@@ -284,6 +304,10 @@ function updateActionCommon(options = {}) {
   updateBullets();
   // エフェクト
   updateEffects();
+  // ストーリー解放
+  if (addScore) {
+    updateStoryScoreUnlocks();
+  }
   // ゲーム中ナビ
   updateGameNav();
 }
@@ -297,6 +321,34 @@ function updatePlaying() {
   if (score >= BOSS_UNLOCK_SCORE * SCORE_DISPLAY_SCALE) {
     enterBossFromRide();
   }
+}
+
+function updateStoryScoreUnlocks() {
+  const displayScore = Math.floor(score / SCORE_DISPLAY_SCALE);
+
+  STORY_SCORE_UNLOCKS.forEach(unlock => {
+    if (displayScore < unlock.score) return;
+
+    const unlocked =
+      typeof unlockStoryChapter === "function" &&
+      unlockStoryChapter(unlock.chapterId);
+
+    if (unlocked) {
+      pendingStoryUnlockTitles.push(unlock.title);
+    }
+  });
+}
+
+function consumeStoryUnlockNoticeText() {
+  if (pendingStoryUnlockTitles.length <= 0) return "";
+
+  const titles = pendingStoryUnlockTitles
+    .map(title => `「${title}」`)
+    .join("、");
+
+  pendingStoryUnlockTitles = [];
+
+  return `STORYに${titles}が追加されたよ。タイトルのSTORYから読めるよ！`;
 }
 
 function movePlayerTowardBossEntry() {

@@ -3,6 +3,7 @@
 // ====================
 
 const CONFIG_KEY_BINDINGS_STORAGE_KEY = "tachikage.keyBindings";
+const CONFIG_CHEAT_MODE_STORAGE_KEY = "tachikage.cheatMode";
 const CONFIG_STORAGE_KEY_PREFIX = "tachikage.";
 const CONFIG_BOSS_MODE_UNLOCK_STORAGE_KEY = "tachikage.bossModeUnlocked";
 
@@ -55,10 +56,16 @@ const CONFIG_MENU_ITEMS = [
     type: "button",
     id: "resetTachikageStorage",
     label: "Reset TACHIKAGE Storage"
+  },
+  {
+    type: "toggle",
+    id: "cheatMode",
+    label: "Cheat Mode"
   }
 ];
 
 let keyBindings = loadKeyBindings();
+let cheatModeEnabled = loadCheatModeEnabled();
 let configMenuIndex = 0;
 let configCaptureAction = null;
 let configConfirmAction = null;
@@ -122,6 +129,31 @@ function saveKeyBindings() {
     CONFIG_KEY_BINDINGS_STORAGE_KEY,
     JSON.stringify(keyBindings)
   );
+}
+
+function loadCheatModeEnabled() {
+  return readConfigStorageValue(CONFIG_CHEAT_MODE_STORAGE_KEY) === "1";
+}
+
+function saveCheatModeEnabled() {
+  writeConfigStorageValue(
+    CONFIG_CHEAT_MODE_STORAGE_KEY,
+    cheatModeEnabled ? "1" : "0"
+  );
+}
+
+function toggleCheatModeEnabled() {
+  cheatModeEnabled = !cheatModeEnabled;
+  saveCheatModeEnabled();
+  showConfigNotice(
+    cheatModeEnabled
+      ? "Cheat Mode ON"
+      : "Cheat Mode OFF"
+  );
+}
+
+function isCheatModeEnabled() {
+  return cheatModeEnabled;
 }
 
 function showConfigMessage(message) {
@@ -335,7 +367,13 @@ function activateConfigMenuItem(item) {
   if (item.id === "resetTachikageStorage") {
     resetTachikageStorage();
     keyBindings = getDefaultKeyBindings();
+    cheatModeEnabled = false;
     showConfigNotice("TACHIKAGE localStorage reset");
+    return;
+  }
+
+  if (item.id === "cheatMode") {
+    toggleCheatModeEnabled();
   }
 }
 
@@ -519,6 +557,20 @@ function drawConfigMenuItem(item, x, valueX, valueMaxW, fontSize, y, selected) {
       valueMaxW > 0 ? ellipsizeText(keyLabel, valueMaxW) : keyLabel;
 
     ctx.fillText(displayKeyLabel, valueX, y);
+    return;
+  }
+
+  if (item.type === "toggle") {
+    ctx.fillText(item.label, x, y);
+
+    ctx.fillStyle = cheatModeEnabled
+      ? "cyan"
+      : "rgba(210,245,255,0.9)";
+    ctx.fillText(
+      cheatModeEnabled ? "ON" : "OFF",
+      valueX,
+      y
+    );
     return;
   }
 

@@ -122,12 +122,15 @@ function isStoryChapterUnlocked(chapter) {
 function unlockStoryChapter(id) {
   const chapter = STORY_CHAPTERS.find(item => item.id === id);
 
-  if (!chapter || !chapter.unlockKey) return;
+  if (!chapter || !chapter.unlockKey) return false;
+  if (isStoryChapterUnlocked(chapter)) return false;
 
   writeStoryStorageValue(
     STORY_UNLOCK_STORAGE_PREFIX + chapter.unlockKey,
     "1"
   );
+
+  return true;
 }
 
 function resetStoryCharacters() {

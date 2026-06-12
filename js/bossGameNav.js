@@ -137,6 +137,24 @@ function showBossGameNavGameOver() {
 
   if (gameNavGameOverShown) return;
 
+  const storyUnlockNotice =
+    typeof consumeStoryUnlockNoticeText === "function"
+      ? consumeStoryUnlockNoticeText()
+      : "";
+
+  if (storyUnlockNotice) {
+    showGameNav(
+      "bossGameOver",
+      "sad",
+      storyUnlockNotice,
+      240,
+      10
+    );
+
+    gameNavGameOverShown = true;
+    return;
+  }
+
   showGameNav(
     "bossGameOver",
     "sad",
