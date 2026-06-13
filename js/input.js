@@ -59,6 +59,13 @@ document.addEventListener("keydown", e => {
   }
 
   if (
+    isActiveGameState() &&
+    handleActiveGameEscapeKey(e)
+  ) {
+    return;
+  }
+
+  if (
     gameState === "playing" ||
     gameState === "boss"
   ) {
@@ -195,6 +202,30 @@ function handlePlayingKey(e) {
   ) {
     startSpecial();
   }
+}
+
+function isActiveGameState() {
+  return (
+    gameState === "playing" ||
+    gameState === "boss" ||
+    gameState === "bossTransition"
+  );
+}
+
+function handleActiveGameEscapeKey(e) {
+
+  if (e.key !== "Escape") return false;
+
+  keys = {};
+  resetGame();
+  resetGameNav();
+
+  if (typeof resetBoss === "function") {
+    resetBoss();
+  }
+
+  enterTitle();
+  return true;
 }
 
 function handleGameOverKey(e) {
