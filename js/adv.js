@@ -19,6 +19,10 @@ const storyImages = {
   }
 };
 
+const storyForegroundImages = {
+  neonCity: loadImage("story.foreground.neonCity", "images/neon_city.png")
+};
+
 let storyLineIndex = 0;
 let storyMode = "select";
 let storyChapterIndex = 0;
@@ -489,6 +493,26 @@ function drawStoryCharacter(character, side, active) {
   }
 }
 
+function drawStoryForeground(line) {
+
+  if (!line || !line.foreground) return;
+
+  const img = storyForegroundImages[line.foreground];
+
+  if (!img || !imageReady(img)) return;
+
+  ctx.save();
+  ctx.globalAlpha = 0.96;
+  ctx.drawImage(
+    img,
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+  ctx.restore();
+}
+
 function drawStory() {
 
   if (storyMode === "select") {
@@ -514,6 +538,8 @@ function drawStory() {
     "right",
     line.character === "sherry"
   );
+
+  drawStoryForeground(line);
 
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.font = "16px sans-serif";
