@@ -16,6 +16,9 @@ const storyImages = {
     normal: loadImage("story.sherry.normal", "images/sherry_normal.png"),
     laugh: loadImage("story.sherry.laugh", "images/sherry_laugh.png"),
     smug: loadImage("story.sherry.smug", "images/sherry_smug.png")
+  },
+  nullun: {
+    normal: loadImage("story.nullun.normal", "images/nullun.png")
   }
 };
 
@@ -23,10 +26,15 @@ const storyForegroundImages = {
   neonCity: loadImage("story.foreground.neonCity", "images/neon_city.png")
 };
 
+const storyBackgroundImages = {
+  ajito: loadImage("story.background.ajito", "images/ajito.png")
+};
+
 let storyLineIndex = 0;
 let storyMode = "select";
 let storyChapterIndex = 0;
 let currentStoryLines = null;
+let storyBackgroundKey = null;
 
 const STORY_CHARACTER_ENTER_FRAMES = 18;
 const STORY_CHARACTER_SLIDE = 36;
@@ -42,6 +50,7 @@ const STORY_LINES = window.STORY_LINES || [
 ];
 
 const STORY_CHAPTER_LINES = window.STORY_CHAPTER_LINES || {};
+const STORY_ENDING_LINES = window.STORY_ENDING_LINES || {};
 
 const STORY_CHAPTERS = [
   {
@@ -72,7 +81,9 @@ const STORY_CHAPTERS = [
     id: "ending",
     title: "エンディング",
     unlockKey: "ending",
-    lines: STORY_CHAPTER_LINES.ending || STORY_LINES
+    lines: STORY_ENDING_LINES.ending ||
+      STORY_CHAPTER_LINES.ending ||
+      STORY_LINES
   },
   {
     id: "epilogueExtra",
@@ -98,8 +109,15 @@ const storyCharacterStates = {
     face: "normal",
     visible: false,
     animFrame: STORY_CHARACTER_ENTER_FRAMES
+  },
+  nullun: {
+    face: "normal",
+    visible: false,
+    animFrame: STORY_CHARACTER_ENTER_FRAMES
   }
 };
+
+let storyRightCharacter = "sherry";
 
 function readStoryStorageValue(key) {
   try {
@@ -146,6 +164,9 @@ function resetStoryCharacters() {
     state.visible = false;
     state.animFrame = STORY_CHARACTER_ENTER_FRAMES;
   });
+
+  storyRightCharacter = "sherry";
+  storyBackgroundKey = null;
 }
 
 function resetStory() {
@@ -180,6 +201,21 @@ function applyStoryLine() {
   const line = currentStoryLines[storyLineIndex];
 
   if (!line) return;
+
+  if (line.hideCharacters) {
+    resetStoryCharacters();
+  }
+
+  if (
+    line.character === "sherry" ||
+    line.character === "nullun"
+  ) {
+    storyRightCharacter = line.character;
+  }
+
+  if (line.background) {
+    storyBackgroundKey = line.background;
+  }
 
   const state = storyCharacterStates[line.character];
 
@@ -513,6 +549,52 @@ function drawStoryForeground(line) {
   ctx.restore();
 }
 
+function drawStoryImageCover(img) {
+
+  const scale = Math.max(
+    canvas.width / img.naturalWidth,
+    canvas.height / img.naturalHeight
+  );
+  const w = img.naturalWidth * scale;
+  const h = img.naturalHeight * scale;
+  const x = (canvas.width - w) / 2;
+  const y = (canvas.height - h) / 2;
+
+  ctx.drawImage(
+    img,
+    x,
+    y,
+    w,
+    h
+  );
+}
+
+function drawStoryBackground() {
+
+  const img = storyBackgroundImages[storyBackgroundKey];
+
+  if (!img || !imageReady(img)) {
+    drawBackground();
+    return;
+  }
+
+  drawStoryImageCover(img);
+}
+
+function drawStoryScreenTone(line) {
+
+  if (!line || !line.screenTone) return;
+
+  ctx.save();
+
+  ctx.fillStyle = line.screenTone === "white"
+    ? `rgba(255,255,255,${line.screenToneAlpha ?? 0.72})`
+    : `rgba(0,0,0,${line.screenToneAlpha ?? 0.72})`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.restore();
+}
+
 function drawStory() {
 
   if (storyMode === "select") {
@@ -523,7 +605,7 @@ function drawStory() {
   const line = currentStoryLines[storyLineIndex];
   const isLastLine = storyLineIndex === currentStoryLines.length - 1;
 
-  drawBackground();
+  drawStoryBackground();
   ctx.fillStyle = "rgba(0,0,0,0.38)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -534,12 +616,13 @@ function drawStory() {
   );
 
   drawStoryCharacter(
-    "sherry",
+    storyRightCharacter,
     "right",
-    line.character === "sherry"
+    line.character === storyRightCharacter
   );
 
   drawStoryForeground(line);
+  drawStoryScreenTone(line);
 
   ctx.fillStyle = "rgba(255,255,255,0.75)";
   ctx.font = "16px sans-serif";
