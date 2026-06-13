@@ -30,11 +30,16 @@ const storyBackgroundImages = {
   ajito: loadImage("story.background.ajito", "images/ajito.png")
 };
 
+const storyMusicTracks = {
+  thinkingReed: new Audio("images/music/a thinking reed.mp3")
+};
+
 let storyLineIndex = 0;
 let storyMode = "select";
 let storyChapterIndex = 0;
 let currentStoryLines = null;
 let storyBackgroundKey = null;
+let currentStoryMusicKey = null;
 
 const STORY_CHARACTER_ENTER_FRAMES = 18;
 const STORY_CHARACTER_SLIDE = 36;
@@ -171,6 +176,7 @@ function resetStoryCharacters() {
 
 function resetStory() {
 
+  stopStoryMusic();
   storyMode = "select";
   storyLineIndex = 0;
   currentStoryLines = STORY_LINES;
@@ -215,6 +221,10 @@ function applyStoryLine() {
 
   if (line.background) {
     storyBackgroundKey = line.background;
+  }
+
+  if (line.music) {
+    playStoryMusic(line.music);
   }
 
   const state = storyCharacterStates[line.character];
@@ -451,6 +461,37 @@ function drawDialogueText(text, x, y, maxWidth, lineHeight) {
   if (line) {
     dialogueCtx.fillText(line, x, y);
   }
+}
+
+function playStoryMusic(key) {
+
+  if (currentStoryMusicKey === key) return;
+
+  stopStoryMusic();
+
+  const track = storyMusicTracks[key];
+
+  if (!track) return;
+
+  currentStoryMusicKey = key;
+  track.currentTime = 0;
+  track.play().catch(() => {
+    currentStoryMusicKey = null;
+  });
+}
+
+function stopStoryMusic() {
+
+  if (!currentStoryMusicKey) return;
+
+  const track = storyMusicTracks[currentStoryMusicKey];
+
+  if (track) {
+    track.pause();
+    track.currentTime = 0;
+  }
+
+  currentStoryMusicKey = null;
 }
 
 // ====================

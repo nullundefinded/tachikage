@@ -276,6 +276,7 @@ window.STORY_ENDING_LINES = {
       speaker: "タチカゲ",
       character: "tachikage",
       face: "normal",
+      music: "thinkingReed",
       text: "…は？"
     },
     {
