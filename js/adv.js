@@ -37,6 +37,8 @@ const STORY_LINES = window.STORY_LINES || [
   }
 ];
 
+const STORY_CHAPTER_LINES = window.STORY_CHAPTER_LINES || {};
+
 const STORY_CHAPTERS = [
   {
     id: "intro",
@@ -48,37 +50,37 @@ const STORY_CHAPTERS = [
     id: "neonCity",
     title: "ネオンシティについて",
     unlockKey: "neonCity",
-    lines: STORY_LINES
+    lines: STORY_CHAPTER_LINES.neonCity || STORY_LINES
   },
   {
     id: "balad",
     title: "バラッドについて",
     unlockKey: "balad",
-    lines: STORY_LINES
+    lines: STORY_CHAPTER_LINES.balad || STORY_LINES
   },
   {
     id: "bossAdvice",
     title: "バラッド戦アドバイス",
     unlockKey: "bossAdvice",
-    lines: STORY_LINES
+    lines: STORY_CHAPTER_LINES.bossAdvice || STORY_LINES
   },
   {
     id: "ending",
     title: "エンディング",
     unlockKey: "ending",
-    lines: STORY_LINES
+    lines: STORY_CHAPTER_LINES.ending || STORY_LINES
   },
   {
     id: "epilogueExtra",
     title: "蛇足",
     unlockKey: "epilogueExtra",
-    lines: STORY_LINES
+    lines: STORY_CHAPTER_LINES.epilogueExtra || STORY_LINES
   },
   {
     id: "afterword",
     title: "注釈・あとがき",
     unlockKey: "afterword",
-    lines: STORY_LINES
+    lines: STORY_CHAPTER_LINES.afterword || STORY_LINES
   }
 ];
 
