@@ -4,6 +4,7 @@
 
 const dialogueCanvas = document.getElementById("dialogue-ui");
 const dialogueCtx = dialogueCanvas.getContext("2d");
+const storyGameCanvas = document.getElementById("game");
 const storyMaskCanvas = document.createElement("canvas");
 const storyMaskCtx = storyMaskCanvas.getContext("2d");
 
@@ -36,12 +37,25 @@ const storyMusicTracks = {
   hectopascal: new Audio("images/music/私の想いはヘクトパスカル.mp3")
 };
 
+const STORY_MUSIC_VOLUME_STORAGE_KEY = "tachikage.storyMusicVolume";
+const STORY_MUSIC_DEFAULT_VOLUME = 0.35;
+const STORY_MUSIC_VOLUME_CONTROL = {
+  x: 18,
+  y: 42,
+  w: 132,
+  h: 26,
+  labelW: 36,
+  trackW: 82
+};
+
 let storyLineIndex = 0;
 let storyMode = "select";
 let storyChapterIndex = 0;
 let currentStoryLines = null;
 let storyBackgroundKey = null;
 let currentStoryMusicKey = null;
+let storyMusicVolume = loadStoryMusicVolume();
+let storyMusicVolumeDragging = false;
 
 const STORY_CHARACTER_ENTER_FRAMES = 18;
 const STORY_CHARACTER_SLIDE = 36;
@@ -144,6 +158,25 @@ function writeStoryStorageValue(key, value) {
   } catch (error) {
     // Storage can be unavailable in some restricted browser modes.
   }
+}
+
+function loadStoryMusicVolume() {
+  const saved = readStoryStorageValue(STORY_MUSIC_VOLUME_STORAGE_KEY);
+
+  if (saved === null) return STORY_MUSIC_DEFAULT_VOLUME;
+
+  const volume = Number(saved);
+
+  if (!Number.isFinite(volume)) return STORY_MUSIC_DEFAULT_VOLUME;
+
+  return Math.max(0, Math.min(1, volume));
+}
+
+function saveStoryMusicVolume() {
+  writeStoryStorageValue(
+    STORY_MUSIC_VOLUME_STORAGE_KEY,
+    String(storyMusicVolume)
+  );
 }
 
 function isStoryChapterUnlocked(chapter) {
@@ -491,6 +524,7 @@ function playStoryMusic(key) {
 
   currentStoryMusicKey = key;
   track.currentTime = 0;
+  track.volume = storyMusicVolume;
   track.play().catch(() => {
     currentStoryMusicKey = null;
   });
@@ -508,6 +542,22 @@ function stopStoryMusic() {
   }
 
   currentStoryMusicKey = null;
+}
+
+function applyStoryMusicVolume() {
+  Object.values(storyMusicTracks).forEach(track => {
+    track.volume = storyMusicVolume;
+  });
+}
+
+function setStoryMusicVolumeFromPoint(x) {
+  const control = STORY_MUSIC_VOLUME_CONTROL;
+  const trackX = control.x + control.labelW;
+  const rate = (x - trackX) / control.trackW;
+
+  storyMusicVolume = Math.max(0, Math.min(1, rate));
+  applyStoryMusicVolume();
+  saveStoryMusicVolume();
 }
 
 // ====================
@@ -652,6 +702,43 @@ function drawStoryScreenTone(line) {
   ctx.restore();
 }
 
+function drawStoryMusicVolumeControl() {
+
+  if (!currentStoryMusicKey) return;
+
+  const control = STORY_MUSIC_VOLUME_CONTROL;
+  const trackX = control.x + control.labelW;
+  const trackY = control.y + control.h / 2;
+  const knobX = trackX + control.trackW * storyMusicVolume;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(0,0,0,0.52)";
+  ctx.strokeStyle = "rgba(255,255,255,0.7)";
+  ctx.lineWidth = 2;
+  ctx.fillRect(control.x, control.y, control.w, control.h);
+  ctx.strokeRect(control.x, control.y, control.w, control.h);
+
+  ctx.fillStyle = "rgba(210,245,255,0.9)";
+  ctx.font = "13px sans-serif";
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillText("VOL", control.x + 8, trackY);
+
+  ctx.strokeStyle = "rgba(80,240,255,0.8)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(trackX, trackY);
+  ctx.lineTo(trackX + control.trackW, trackY);
+  ctx.stroke();
+
+  ctx.fillStyle = "cyan";
+  ctx.beginPath();
+  ctx.arc(knobX, trackY, 6, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
 function drawStory() {
 
   if (storyMode === "select") {
@@ -690,6 +777,8 @@ function drawStory() {
     18,
     16
   );
+
+  drawStoryMusicVolumeControl();
 
   ctx.textBaseline = "alphabetic";
 
@@ -760,3 +849,49 @@ function drawStorySelect() {
   ctx.textAlign = "left";
   drawDialogueUI("", "");
 }
+
+function isStoryMusicVolumeControlVisible() {
+  return gameState === "story" &&
+    storyMode === "play" &&
+    Boolean(currentStoryMusicKey);
+}
+
+function getStoryPointFromMouseEvent(e) {
+  const rect = storyGameCanvas.getBoundingClientRect();
+
+  return {
+    x: (e.clientX - rect.left) * storyGameCanvas.width / rect.width,
+    y: (e.clientY - rect.top) * storyGameCanvas.height / rect.height
+  };
+}
+
+function isPointInStoryMusicVolumeControl(point) {
+  const control = STORY_MUSIC_VOLUME_CONTROL;
+
+  return point.x >= control.x &&
+    point.x <= control.x + control.w &&
+    point.y >= control.y &&
+    point.y <= control.y + control.h;
+}
+
+storyGameCanvas.addEventListener("mousedown", e => {
+  if (!isStoryMusicVolumeControlVisible()) return;
+
+  const point = getStoryPointFromMouseEvent(e);
+
+  if (!isPointInStoryMusicVolumeControl(point)) return;
+
+  storyMusicVolumeDragging = true;
+  setStoryMusicVolumeFromPoint(point.x);
+});
+
+storyGameCanvas.addEventListener("mousemove", e => {
+  if (!storyMusicVolumeDragging) return;
+
+  const point = getStoryPointFromMouseEvent(e);
+  setStoryMusicVolumeFromPoint(point.x);
+});
+
+window.addEventListener("mouseup", () => {
+  storyMusicVolumeDragging = false;
+});
