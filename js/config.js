@@ -6,6 +6,7 @@ const CONFIG_KEY_BINDINGS_STORAGE_KEY = "tachikage.keyBindings";
 const CONFIG_CHEAT_MODE_STORAGE_KEY = "tachikage.cheatMode";
 const CONFIG_STORAGE_KEY_PREFIX = "tachikage.";
 const CONFIG_BOSS_MODE_UNLOCK_STORAGE_KEY = "tachikage.bossModeUnlocked";
+const CONFIG_CHEAT_MODE_PASSWORD = "kasane";
 
 const configGameCanvas = document.getElementById("game");
 const configResetCanvas = document.getElementById("config-reset-ui");
@@ -66,6 +67,8 @@ const CONFIG_MENU_ITEMS = [
 
 let keyBindings = loadKeyBindings();
 let cheatModeEnabled = loadCheatModeEnabled();
+let cheatModeVisible = cheatModeEnabled;
+let configPasswordBuffer = "";
 let configMenuIndex = 0;
 let configCaptureAction = null;
 let configConfirmAction = null;
@@ -154,6 +157,20 @@ function toggleCheatModeEnabled() {
 
 function isCheatModeEnabled() {
   return cheatModeEnabled;
+}
+
+function getVisibleConfigMenuItems() {
+  return CONFIG_MENU_ITEMS.filter(item => {
+    return item.id !== "cheatMode" || cheatModeVisible;
+  });
+}
+
+function revealCheatMode() {
+  if (cheatModeVisible) return false;
+
+  cheatModeVisible = true;
+  showConfigNotice("Cheat Mode unlocked");
+  return true;
 }
 
 function showConfigMessage(message) {
@@ -283,27 +300,46 @@ function handleConfigKey(e) {
     return;
   }
 
+  if (handleConfigPasswordKey(e)) {
+    return;
+  }
+
   if (e.key === "Escape") {
     enterTitle();
     return;
   }
 
+  const visibleItems = getVisibleConfigMenuItems();
+
   if (e.code === "ArrowUp") {
     configMenuIndex =
-      (configMenuIndex - 1 + CONFIG_MENU_ITEMS.length) %
-      CONFIG_MENU_ITEMS.length;
+      (configMenuIndex - 1 + visibleItems.length) %
+      visibleItems.length;
     return;
   }
 
   if (e.code === "ArrowDown") {
     configMenuIndex =
-      (configMenuIndex + 1) % CONFIG_MENU_ITEMS.length;
+      (configMenuIndex + 1) % visibleItems.length;
     return;
   }
 
   if (e.key === "Enter") {
-    activateConfigMenuItem(CONFIG_MENU_ITEMS[configMenuIndex]);
+    activateConfigMenuItem(visibleItems[configMenuIndex]);
   }
+}
+
+function handleConfigPasswordKey(e) {
+  if (cheatModeVisible) return false;
+  if (e.ctrlKey || e.altKey || e.metaKey) return false;
+  if (e.key.length !== 1) return false;
+
+  configPasswordBuffer =
+    (configPasswordBuffer + e.key.toLowerCase())
+      .slice(-CONFIG_CHEAT_MODE_PASSWORD.length);
+
+  return configPasswordBuffer === CONFIG_CHEAT_MODE_PASSWORD &&
+    revealCheatMode();
 }
 
 function handleConfigConfirmKey(e) {
@@ -368,6 +404,12 @@ function activateConfigMenuItem(item) {
     resetTachikageStorage();
     keyBindings = getDefaultKeyBindings();
     cheatModeEnabled = false;
+    cheatModeVisible = false;
+    configPasswordBuffer = "";
+    configMenuIndex = Math.min(
+      configMenuIndex,
+      getVisibleConfigMenuItems().length - 1
+    );
     showConfigNotice("TACHIKAGE localStorage reset");
     return;
   }
@@ -477,13 +519,14 @@ function drawConfig() {
   const resetColumnX = CONFIG_LAYOUT.resetColumnX;
   const valueColumnX = CONFIG_LAYOUT.valueColumnX;
   const keyValueMaxW = keyColumnX + keyColumnW - valueColumnX;
+  const visibleItems = getVisibleConfigMenuItems();
 
   ctx.textAlign = "left";
   drawConfigSection("KEY SETTINGS", keyColumnX, CONFIG_LAYOUT.sectionY);
 
   let y = CONFIG_LAYOUT.firstItemY;
 
-  CONFIG_MENU_ITEMS.slice(0, 6).forEach((item, index) => {
+  visibleItems.slice(0, 6).forEach((item, index) => {
     drawConfigMenuItem(
       item,
       keyColumnX,
@@ -499,7 +542,7 @@ function drawConfig() {
   drawConfigSection("RESET", resetColumnX, CONFIG_LAYOUT.sectionY);
   y = CONFIG_LAYOUT.firstItemY;
 
-  CONFIG_MENU_ITEMS.slice(6).forEach((item, index) => {
+  visibleItems.slice(6).forEach((item, index) => {
     const menuIndex = index + 6;
     drawConfigMenuItem(
       item,
@@ -578,6 +621,7 @@ function drawConfigMenuItem(item, x, valueX, valueMaxW, fontSize, y, selected) {
 }
 
 function getConfigMenuIndexAtPoint(x, y) {
+  const visibleItems = getVisibleConfigMenuItems();
   const keyIndex = getConfigColumnIndexAtPoint(
     x,
     y,
@@ -595,7 +639,7 @@ function getConfigMenuIndexAtPoint(x, y) {
     CONFIG_LAYOUT.resetColumnX - 36,
     CONFIG_LAYOUT.resetColumnW + 36,
     6,
-    CONFIG_MENU_ITEMS.length - 6
+    visibleItems.length - 6
   );
 }
 
@@ -670,8 +714,9 @@ configGameCanvas.addEventListener("click", e => {
   const index = getConfigMenuIndexAtPoint(point.x, point.y);
 
   if (index >= 0) {
+    const visibleItems = getVisibleConfigMenuItems();
     configMenuIndex = index;
-    activateConfigMenuItem(CONFIG_MENU_ITEMS[index]);
+    activateConfigMenuItem(visibleItems[index]);
   }
 });
 
