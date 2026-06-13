@@ -534,7 +534,55 @@ function drawBossClearOverlay() {
     266
   );
 
+  ctx.fillStyle = "rgba(210,245,255,0.72)";
+  ctx.font = "18px sans-serif";
+  ctx.fillText(
+    "Enter / Esc: Title",
+    canvas.width / 2,
+    296
+  );
+
+  const storyUnlockNotice =
+    typeof getStoryUnlockNoticeText === "function"
+      ? getStoryUnlockNoticeText()
+      : "";
+
+  if (storyUnlockNotice) {
+    drawBossClearStoryUnlockNotice(storyUnlockNotice);
+  }
+
   ctx.restore();
+}
+
+function drawBossClearStoryUnlockNotice(text) {
+
+  const maxWidth = canvas.width - 120;
+  const lineHeight = 24;
+  let line = "";
+  let y = 330;
+
+  ctx.fillStyle = "rgba(80,240,255,0.92)";
+  ctx.font = "18px sans-serif";
+
+  [...text].forEach(char => {
+    const nextLine = line + char;
+
+    if (
+      line &&
+      ctx.measureText(nextLine).width > maxWidth
+    ) {
+      ctx.fillText(line, canvas.width / 2, y);
+      line = char;
+      y += lineHeight;
+      return;
+    }
+
+    line = nextLine;
+  });
+
+  if (line) {
+    ctx.fillText(line, canvas.width / 2, y);
+  }
 }
 
 function drawBossHitBoxes() {

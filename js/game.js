@@ -41,6 +41,7 @@ let clearComboTimer = 0;
 let bestCombo = 0;
 let bossStartedFromRide = false;
 let bossModeUnlockedInCurrentBoss = false;
+let bossClearStoryUnlockChecked = false;
 let pendingStoryUnlockTitles = [];
 
 const DEV_START_BOSS =
@@ -75,6 +76,24 @@ const STORY_SCORE_UNLOCKS = [
     score: 1000,
     chapterId: "bossAdvice",
     title: "バラッド戦アドバイス"
+  }
+];
+
+const STORY_BOSS_CLEAR_UNLOCKS = [
+  {
+    chapterId: "ending",
+    title: "エンディング"
+  }
+];
+
+const STORY_RIDE_BOSS_CLEAR_UNLOCKS = [
+  {
+    chapterId: "epilogueExtra",
+    title: "蛇足"
+  },
+  {
+    chapterId: "afterword",
+    title: "注釈・あとがき"
   }
 ];
 
@@ -212,6 +231,7 @@ function resetGame() {
   clearCombo = 0;
   clearComboTimer = 0;
   bestCombo = 0;
+  bossClearStoryUnlockChecked = false;
   pendingStoryUnlockTitles = [];
   gameOver = false;
 }
@@ -339,16 +359,47 @@ function updateStoryScoreUnlocks() {
   });
 }
 
-function consumeStoryUnlockNoticeText() {
+function unlockStoryChapters(unlocks) {
+  unlocks.forEach(unlock => {
+    const unlocked =
+      typeof unlockStoryChapter === "function" &&
+      unlockStoryChapter(unlock.chapterId);
+
+    if (unlocked) {
+      pendingStoryUnlockTitles.push(unlock.title);
+    }
+  });
+}
+
+function updateBossClearStoryUnlocks() {
+  if (bossClearStoryUnlockChecked) return;
+  if (!(typeof isBossClear === "function" && isBossClear())) return;
+
+  bossClearStoryUnlockChecked = true;
+  unlockStoryChapters(STORY_BOSS_CLEAR_UNLOCKS);
+
+  if (bossStartedFromRide) {
+    unlockStoryChapters(STORY_RIDE_BOSS_CLEAR_UNLOCKS);
+  }
+}
+
+function getStoryUnlockNoticeText() {
   if (pendingStoryUnlockTitles.length <= 0) return "";
 
   const titles = pendingStoryUnlockTitles
     .map(title => `「${title}」`)
     .join("、");
 
+  return `STORYに${titles}が追加されたよ。タイトルのSTORYから読めるよ！`;
+}
+
+function consumeStoryUnlockNoticeText() {
+  const noticeText = getStoryUnlockNoticeText();
+  if (!noticeText) return "";
+
   pendingStoryUnlockTitles = [];
 
-  return `STORYに${titles}が追加されたよ。タイトルのSTORYから読めるよ！`;
+  return noticeText;
 }
 
 function movePlayerTowardBossEntry() {
@@ -396,6 +447,7 @@ function updateBossTransition() {
 
 function updateBoss() {
   if (typeof isBossClear === "function" && isBossClear()) {
+    updateBossClearStoryUnlocks();
     updateBackground();
     updateBossGameNav();
     return;
@@ -410,6 +462,7 @@ function updateBoss() {
 
   updateActionCommon();
   updateBossEnemy();
+  updateBossClearStoryUnlocks();
   updateBossGameNav();
 }
 

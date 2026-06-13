@@ -44,6 +44,15 @@ document.addEventListener("keydown", e => {
     return;
   }
 
+  if (
+    gameState === "boss" &&
+    typeof isBossClear === "function" &&
+    isBossClear()
+  ) {
+    handleBossClearKey(e);
+    return;
+  }
+
   if (gameOver) {
     handleGameOverKey(e);
     return;
@@ -208,6 +217,23 @@ function handleGameOverKey(e) {
     resetGame();
     enterTitle();
   }
+}
+
+function handleBossClearKey(e) {
+
+  if (
+    e.key !== "Enter" &&
+    e.key !== "Escape"
+  ) {
+    return;
+  }
+
+  if (typeof consumeStoryUnlockNoticeText === "function") {
+    consumeStoryUnlockNoticeText();
+  }
+
+  resetGame();
+  enterTitle();
 }
 
 document.addEventListener("keyup", e => {
