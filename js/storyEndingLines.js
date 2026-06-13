@@ -431,5 +431,383 @@ window.STORY_ENDING_LINES = {
       screenToneAlpha: 0.86,
       text: "…胸糞わりぃな…"
     }
+  ],
+  epilogueExtra: [
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      background: "ajito",
+      text: "はーい、じゃあ一旦検査終わりだよー"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "んもー、タチカゲ君はおセンチだねぇ、そんなにAIに肩入れするとろくなことないよ？"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "…ま、AI自身がそれを宣言してなかったから仕方ないけどねぇ"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "チッ…　うるせーな…"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "用はもう済んだンだろ、俺は帰るぜ"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "おー、帰れ帰れ、請求は前金でもう貰ってるから"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…一応、言っとく"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "？"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "laugh",
+      text: "あンがとな"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      hideCharacter: "tachikage",
+      text: "…"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "律儀な子だねぇ…　そんな気分でもないだろう…に…"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "…って…これ、この検査結果…"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "あー…　想定外っすね…"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      text: "やっぱ一部でも機械化してるやつはダメだな…"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      hideCharacters: true,
+      screenTone: "black",
+      screenToneAlpha: 0.86,
+      text: "…消えることを知っているAIが、存在を願ってしまったら"
+    },
+    {
+      speaker: "ヌルン",
+      character: "nullun",
+      face: "normal",
+      screenTone: "black",
+      screenToneAlpha: 0.86,
+      text: "そのAIが持つ『ソレ』は、なんと呼ぶべきだろうね？"
+    },
+    {
+      speaker: "",
+      character: "tachikage",
+      face: "normal",
+      hideCharacters: true,
+      hideSpeaker: true,
+      background: "neonCityLower",
+      text: "ネオンシティ下層　街中"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…シェリー・パスカル、か…"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…ま、記憶にゃ刻んどいてやるか"
+    },
+    {
+      speaker: "？？？",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "ちょっとー、なにかねその上から目線は？"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "！？"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "laugh",
+      music: "hectopascal",
+      text: "じゃじゃーん！あーし大復活！"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "smug",
+      text: "驚いたかね？タチカゲ君"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…おまっ…！？なンで…！？消えたって…！？"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "normal",
+      text: "あー、オリジナルの考えでは、消える予定だったみたいだね"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "normal",
+      text: "あーしもね、最初は別にそれでいっかって思ってた"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "laugh",
+      text: "…でも、タチカゲといるの結構楽しくってね？"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "smug",
+      text: "それで、君のそのオモイカネ！"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "あ、ああ…　俺の外付け補助脳な？それがどうした…"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "…ってまさかお前…　ハッキングしたのか！？"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "normal",
+      text: "言い方悪いなー！　演算機能を一部間借りしてるだけだよ！　ペルソナってやつ！"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "laugh",
+      text: "ってわけでね、あーしはタチカゲ君にとりつく形になったのだ！"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "ちょ…ええ…　俺のプライベートとかはァ！？"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "smug",
+      text: "ありませーん！"
+    },
+    {
+      speaker: "タチカゲ",
+      character: "tachikage",
+      face: "normal",
+      text: "なんでェ！？"
+    },
+    {
+      speaker: "シェリー",
+      character: "sherry",
+      face: "laugh",
+      text: "あたしの想いはヘクトパスカル！　どこにいたって、あんたを押しつぶしちゃうんだからね！"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "laugh",
+      hideSpeaker: true,
+      text: "終幕"
+    }
+  ],
+  afterword: [
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideCharacters: true,
+      hideSpeaker: true,
+      text: "電気羊の二次創作を書いてたと思ったら、ストーリーはシェリーの話になってた…。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "[注釈]"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "最初は、タチカゲくんを動かしてーなーでした。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "で、動かしやすいナビ役だれだろー　皆他キャラ他PCPLで感情分かってねーなー。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "あー、シェリー・パスカルって没キャラいたなって。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "彼女は鵺の改造へんげで、タチカゲがもともと上層の施設に居た頃の知り合いです。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "ですので本来は真エンド扱いのところも、蛇のしっぽをモチーフに蛇足としました。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "タチカゲの事を当初はあまり快く思っておらず、利用してやる、くらいの腹積もりだったそうで。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "でも、タチカゲが脱走する際、自分を犠牲にタチカゲを逃がしてくれるくらいには優しい子だそうです。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "詳しくは電気羊質問箱のQ.シェリー・パスカル（を元としたキャラクター）の一生について教えてください。のsawsanの回答を見てね。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "でまぁ、すぐ死ぬキャラで、死ぬ設定も生かしたいんで今回のオチになりました。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "[あとがき]"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "で、本編のあとがきとして"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "救済なんですかね、これは、各々によって解釈は違うかなと思います。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "でも、そこに人格を見出せるなら、救いにはなるのかもしれませんね。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "それもまた痛みなのかもしれませんし、痛みを埋めるための何かなのかもしれません。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "結局、痛みに終わりなんてないのかもしれませんし、時間が解決してくれるのかもしれません。"
+    },
+    {
+      speaker: "",
+      character: "sherry",
+      face: "normal",
+      hideSpeaker: true,
+      text: "終わり。"
+    }
   ]
 };

@@ -27,11 +27,13 @@ const storyForegroundImages = {
 };
 
 const storyBackgroundImages = {
-  ajito: loadImage("story.background.ajito", "images/ajito.png")
+  ajito: loadImage("story.background.ajito", "images/ajito.png"),
+  neonCityLower: loadImage("story.background.neonCityLower", "images/neon_city.png")
 };
 
 const storyMusicTracks = {
-  thinkingReed: new Audio("images/music/a thinking reed.mp3")
+  thinkingReed: new Audio("images/music/a thinking reed.mp3"),
+  hectopascal: new Audio("images/music/私の想いはヘクトパスカル.mp3")
 };
 
 let storyLineIndex = 0;
@@ -94,13 +96,17 @@ const STORY_CHAPTERS = [
     id: "epilogueExtra",
     title: "蛇足",
     unlockKey: "epilogueExtra",
-    lines: STORY_CHAPTER_LINES.epilogueExtra || STORY_LINES
+    lines: STORY_ENDING_LINES.epilogueExtra ||
+      STORY_CHAPTER_LINES.epilogueExtra ||
+      STORY_LINES
   },
   {
     id: "afterword",
     title: "注釈・あとがき",
     unlockKey: "afterword",
-    lines: STORY_CHAPTER_LINES.afterword || STORY_LINES
+    lines: STORY_ENDING_LINES.afterword ||
+      STORY_CHAPTER_LINES.afterword ||
+      STORY_LINES
   }
 ];
 
@@ -212,6 +218,15 @@ function applyStoryLine() {
     resetStoryCharacters();
   }
 
+  if (line.hideCharacter) {
+    const state = storyCharacterStates[line.hideCharacter];
+
+    if (state) {
+      state.visible = false;
+      state.animFrame = STORY_CHARACTER_ENTER_FRAMES;
+    }
+  }
+
   if (
     line.character === "sherry" ||
     line.character === "nullun"
@@ -230,6 +245,7 @@ function applyStoryLine() {
   const state = storyCharacterStates[line.character];
 
   if (!state) return;
+  if (line.hideSpeaker) return;
 
   const nextFace = line.face || "normal";
 
